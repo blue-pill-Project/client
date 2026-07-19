@@ -1,8 +1,7 @@
-import { useRef, useEffect, useMemo, useState } from 'react';
-import { Send } from 'lucide-react';
+import { useRef, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { MoreVertical, Reply, Send, X } from 'lucide-react';
 import { getDayLog } from '../../lib/logRoomApi';
 import type { ChatMessage, SharedPost, DayLogTimeSlot, DayLogEntry } from '../../lib/logRoomApi';
-import { messageReplyKey } from '../../lib/photoReplyCache';
 import { getImageUrl } from '../../lib/utils';
 
 interface LogEntryItem extends DayLogEntry {
@@ -28,10 +27,14 @@ interface ChatPanelProps {
   onInputChange: (value: string) => void;
   onSendMessage: () => void;
   replyPhotoId: string | null;
+  onReply: (photoPublicId: string | null) => void;
   onJumpToLog: (date: string, timeSlot: number) => void;
   myImageUrl: string | null;
   characterName?: string;
   characterImageUrl: string | null;
+  hasMore?: boolean;
+  isLoadingOlder?: boolean;
+  onLoadOlder?: () => void;
 }
 
 const getDateKey = (isoString: string) => {
@@ -67,8 +70,135 @@ const toLogEntryItems = (dateKey: string, slots: DayLogTimeSlot[]): LogEntryItem
     }))
   );
 
-export const ChatPanel = ({ roomPublicId, chatMessages, sharedPosts, timelineData, selectedDate, isAiTyping, isInputDisabled = false, inputValue, onInputChange, onSendMessage, replyPhotoId, onJumpToLog, myImageUrl, characterName, characterImageUrl }: ChatPanelProps) => {
+const LONG_PRESS_MS = 500;
+
+/** 채팅 로그 사진 — 모바일 롱프레스 / 데스크톱 호버 3점 메뉴로 답장 */
+const ChatLogPhoto = ({
+  log,
+  onReply,
+}: {
+  log: LogEntryItem;
+  onReply: (photoPublicId: string) => void;
+}) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const didLongPress = useRef(false);
+
+  const clearLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handlePointerDown = (e: PointerEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+  }, [menuOpen]);
+
+  const openMenu = () => setMenuOpen(true);
+
+  const handleReply = () => {
+    setMenuOpen(false);
+    onReply(log.photoPublicId);
+  };
+
+  return (
+    <div className="relative group max-w-60" ref={menuRef}>
+      <img
+        src={getImageUrl(log.imageUrl) || ''}
+        alt={log.caption || '로그 이미지'}
+        className="w-full rounded-2xl object-cover border border-gray-800 select-none"
+        draggable={false}
+        onContextMenu={(e) => e.preventDefault()}
+        onTouchStart={() => {
+          didLongPress.current = false;
+          clearLongPress();
+          longPressTimer.current = setTimeout(() => {
+            didLongPress.current = true;
+            openMenu();
+          }, LONG_PRESS_MS);
+        }}
+        onTouchEnd={clearLongPress}
+        onTouchMove={clearLongPress}
+        onTouchCancel={clearLongPress}
+        onClick={(e) => {
+          // 롱프레스로 메뉴를 연 직후 발생하는 click은 무시
+          if (didLongPress.current) {
+            e.preventDefault();
+            didLongPress.current = false;
+          }
+        }}
+      />
+
+      {/* 데스크톱: 호버 시 3점 버튼 */}
+      <button
+        type="button"
+        aria-label="사진 메뉴"
+        onClick={(e) => {
+          e.stopPropagation();
+          setMenuOpen((prev) => !prev);
+        }}
+        className="hidden md:flex absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+      >
+        <MoreVertical size={16} />
+      </button>
+
+      {menuOpen && (
+        <div className="absolute top-10 right-2 z-20 min-w-[7.5rem] py-1 rounded-xl bg-gray-900 border border-gray-700 shadow-lg">
+          <button
+            type="button"
+            onClick={handleReply}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-100 hover:bg-gray-800 transition-colors"
+          >
+            <Reply size={14} />
+            답장
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const ChatPanel = ({
+  roomPublicId,
+  chatMessages,
+  sharedPosts,
+  timelineData,
+  selectedDate,
+  isAiTyping,
+  isInputDisabled = false,
+  inputValue,
+  onInputChange,
+  onSendMessage,
+  replyPhotoId,
+  onReply,
+  onJumpToLog,
+  myImageUrl,
+  characterName,
+  characterImageUrl,
+  hasMore = false,
+  isLoadingOlder = false,
+  onLoadOlder,
+}: ChatPanelProps) => {
+  const scrollRef = useRef<HTMLElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const prevScrollHeightRef = useRef(0);
+  const prevMessageCountRef = useRef(0);
+  const prevScrollTopRef = useRef(0);
+  const shouldStickToBottomRef = useRef(true);
+  const isPrependingRef = useRef(false);
+  const isProgrammaticScrollRef = useRef(false);
+  /** 최초 하단 정렬이 끝난 뒤에만 상단 로드를 허용 */
+  const canLoadOlderRef = useRef(false);
   // selectedDate를 제외한 '과거' 날짜들의 로그 (메시지/공유 게시물 때문에 별도 조회가 필요한 날짜만)
   const [historicalLogsByDate, setHistoricalLogsByDate] = useState<Record<string, LogEntryItem[]>>({});
 
@@ -103,7 +233,7 @@ export const ChatPanel = ({ roomPublicId, chatMessages, sharedPosts, timelineDat
     return () => { cancelled = true; };
   }, [messagePostDateKeys, roomPublicId, historicalLogsByDate, selectedDate]);
 
-  // 현재 보고 있는 날짜(selectedDate)의 로그는 부모가 이미 들고 있는 timelineData에서 직접 파생 (별도 state/effect 불필요)
+  // 현재 보고 있는 날짜(selectedDate)의 로그는 부모가 이미 들고 있는 timelineData에서 직접 파생
   const selectedDateLogItems = useMemo(
     () => toLogEntryItems(selectedDate, timelineData),
     [selectedDate, timelineData]
@@ -116,54 +246,97 @@ export const ChatPanel = ({ roomPublicId, chatMessages, sharedPosts, timelineDat
     ...selectedDateLogItems,
   ], [historicalLogsByDate, selectedDateLogItems, selectedDate]);
 
-  const logPhotoIds = useMemo(
-    () => new Set(allLogItems.map(log => log.photoPublicId)),
-    [allLogItems],
-  );
-
-  // 사진에 달린 답장 — 해당 사진이 피드에 있을 때만 사진 아래로 묶는다
-  const repliesByPhotoId = useMemo(() => {
-    const map = new Map<string, ChatMessage[]>();
-    for (const msg of chatMessages) {
-      const photoId = msg.quotedPhotoPublicId;
-      if (!photoId || !logPhotoIds.has(photoId)) continue;
-      const list = map.get(photoId) ?? [];
-      list.push(msg);
-      map.set(photoId, list);
-    }
-    for (const list of map.values()) {
-      list.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-    }
+  const logByPhotoId = useMemo(() => {
+    const map = new Map<string, LogEntryItem>();
+    for (const log of allLogItems) map.set(log.photoPublicId, log);
     return map;
-  }, [chatMessages, logPhotoIds]);
+  }, [allLogItems]);
 
-  const nestedReplyKeys = useMemo(() => {
-    const keys = new Set<string>();
-    for (const list of repliesByPhotoId.values()) {
-      for (const msg of list) keys.add(messageReplyKey(msg));
-    }
-    return keys;
-  }, [repliesByPhotoId]);
+  const replyTarget = replyPhotoId ? logByPhotoId.get(replyPhotoId) ?? null : null;
 
   // 통합된 채팅/로그 목록 정렬 (createdAt 기준)
   // 공유 게시물(POST) 카드는 채팅창에 이미지로 올리지 않는다.
-  // historicalLogsByDate는 selectedDate가 바뀌기 전에 캐시된 과거 날짜의 로그도 그대로 남아있을 수 있으므로,
-  // 현재 선택된 날짜는 selectedDateLogItems(live)만 사용하고 historicalLogsByDate에서는 제외해 중복을 막는다.
+  // 사진 답장은 이미지 아래에 묶지 않고, 메시지 말풍선에 해당 사진을 다시 첨부해 표시한다.
   const chatItems: ChatItem[] = useMemo(() => [
-    ...chatMessages
-      .filter(m => !nestedReplyKeys.has(messageReplyKey(m)))
-      .map(m => ({ type: 'MESSAGE' as const, data: m })),
+    ...chatMessages.map(m => ({ type: 'MESSAGE' as const, data: m })),
     ...allLogItems.map(log => ({ type: 'LOG' as const, data: log })),
   ].sort((a, b) => new Date(a.data.createdAt).getTime() - new Date(b.data.createdAt).getTime()),
-  [chatMessages, allLogItems, nestedReplyKeys]);
+  [chatMessages, allLogItems]);
+
+  // 이전 메시지 prepend 시 스크롤 위치 유지
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (!el || !isPrependingRef.current) return;
+    isProgrammaticScrollRef.current = true;
+    el.scrollTop = el.scrollHeight - prevScrollHeightRef.current;
+    prevScrollTopRef.current = el.scrollTop;
+    isPrependingRef.current = false;
+    requestAnimationFrame(() => {
+      isProgrammaticScrollRef.current = false;
+    });
+  }, [chatMessages]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatItems, isAiTyping, repliesByPhotoId]);
+    const prevCount = prevMessageCountRef.current;
+    const nextCount = chatMessages.length;
+    prevMessageCountRef.current = nextCount;
 
-  const renderMessageBubble = (msg: ChatMessage, options?: { compact?: boolean; showHeader?: boolean }) => {
-    const compact = options?.compact ?? false;
+    // prepend 로딩 중이거나, 메시지 수가 줄/유지되면 하단 고정 스크롤 생략
+    if (isLoadingOlder || isPrependingRef.current) return;
+    if (nextCount <= prevCount && !isAiTyping) return;
+    if (!shouldStickToBottomRef.current && prevCount > 0) return;
+
+    const el = scrollRef.current;
+    isProgrammaticScrollRef.current = true;
+    chatEndRef.current?.scrollIntoView({ behavior: prevCount === 0 ? 'auto' : 'smooth' });
+    // 하단 정렬 완료 후에만 상단 infinite scroll 허용 (초기 scrollTop=0으로 전체 로드되는 것 방지)
+    requestAnimationFrame(() => {
+      if (el) prevScrollTopRef.current = el.scrollTop;
+      isProgrammaticScrollRef.current = false;
+      canLoadOlderRef.current = true;
+    });
+  }, [chatMessages, isAiTyping, isLoadingOlder]);
+
+  const requestLoadOlder = () => {
+    if (!canLoadOlderRef.current || !hasMore || isLoadingOlder) return;
+    const el = scrollRef.current;
+    if (el) prevScrollHeightRef.current = el.scrollHeight;
+    isPrependingRef.current = true;
+    onLoadOlder?.();
+  };
+
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    shouldStickToBottomRef.current = distanceFromBottom < 80;
+
+    const scrollingUp = scrollTop < prevScrollTopRef.current - 1;
+    prevScrollTopRef.current = scrollTop;
+
+    // 프로그래매틱 스크롤·초기 진입·아래로 스크롤은 무시.
+    // 실제로 스크롤 가능한 상태에서, 사용자가 위로 올릴 때만 이전 페이지를 요청한다.
+    if (isProgrammaticScrollRef.current || !canLoadOlderRef.current) return;
+    if (!scrollingUp) return;
+    if (scrollHeight <= clientHeight + 1) return;
+    if (scrollTop > 80) return;
+
+    requestLoadOlder();
+  };
+
+  const handleReplyFromPhoto = (photoPublicId: string) => {
+    onReply(photoPublicId);
+    // 답장 선택 후 입력창에 포커스
+    requestAnimationFrame(() => inputRef.current?.focus());
+  };
+
+  const renderMessageBubble = (msg: ChatMessage, options?: { showHeader?: boolean }) => {
     const showHeader = options?.showHeader ?? true;
+    const quoted = msg.quotedPhotoPublicId
+      ? logByPhotoId.get(msg.quotedPhotoPublicId) ?? null
+      : null;
 
     return (
       <div className={`flex items-end gap-2 ${msg.isMe ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -171,7 +344,7 @@ export const ChatPanel = ({ roomPublicId, chatMessages, sharedPosts, timelineDat
           <img
             src={getImageUrl(characterImageUrl) || '/default-profile.png'}
             alt={characterName || '캐릭터'}
-            className={`${compact ? 'w-5 h-5' : 'w-7 h-7'} rounded-full object-cover shrink-0`}
+            className="w-7 h-7 rounded-full object-cover shrink-0"
           />
         )}
         <div className={`flex flex-col ${msg.isMe ? 'items-end' : 'items-start'}`}>
@@ -180,8 +353,19 @@ export const ChatPanel = ({ roomPublicId, chatMessages, sharedPosts, timelineDat
               {!msg.isMe && characterName ? `${characterName} · ` : ''}{formatTimestamp(msg.createdAt)}
             </span>
           )}
-          <div className={`px-3 py-2 rounded-2xl ${compact ? 'max-w-52' : 'max-w-60'} bg-gray-800 text-gray-100`}>
-            <p className={`${compact ? 'text-xs' : 'text-sm'}`}>{msg.content}</p>
+          <div className={`flex flex-col gap-1.5 ${msg.isMe ? 'items-end' : 'items-start'}`}>
+            {quoted && (
+              <div className="rounded-xl overflow-hidden border border-gray-700 bg-gray-900/80 max-w-40">
+                <img
+                  src={getImageUrl(quoted.imageUrl) || ''}
+                  alt={quoted.caption || '답장 대상 사진'}
+                  className="w-full object-cover"
+                />
+              </div>
+            )}
+            <div className="px-3 py-2 rounded-2xl max-w-60 bg-gray-800 text-gray-100">
+              <p className="text-sm">{msg.content}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -189,8 +373,27 @@ export const ChatPanel = ({ roomPublicId, chatMessages, sharedPosts, timelineDat
   };
 
   return (
-    <section className="max-h-[calc(100vh-263.5px)] w-full md:w-[25vw] flex flex-col overflow-y-auto hide-scrollbar">
+    <section
+      ref={scrollRef}
+      onScroll={handleScroll}
+      className="max-h-[calc(100vh-263.5px)] w-full md:w-[25vw] flex flex-col overflow-y-auto hide-scrollbar"
+    >
       <div className="p-4 space-y-3 flex-1 mb-11">
+        {(isLoadingOlder || hasMore) && (
+          <div className="flex justify-center py-2">
+            {isLoadingOlder ? (
+              <span className="text-[11px] text-gray-500">이전 대화 불러오는 중...</span>
+            ) : (
+              <button
+                type="button"
+                onClick={requestLoadOlder}
+                className="text-[11px] text-gray-400 hover:text-primary transition-colors"
+              >
+                이전 대화 더 보기
+              </button>
+            )}
+          </div>
+        )}
         {chatItems.map((item, index) => {
           const dateKey = getDateKey(item.data.createdAt);
           const prevItem = chatItems[index - 1];
@@ -223,7 +426,6 @@ export const ChatPanel = ({ roomPublicId, chatMessages, sharedPosts, timelineDat
           }
 
           const log = item.data as LogEntryItem;
-          const replies = repliesByPhotoId.get(log.photoPublicId) ?? [];
 
           return (
             <div key={`item-${index}`} className="space-y-3">
@@ -232,24 +434,8 @@ export const ChatPanel = ({ roomPublicId, chatMessages, sharedPosts, timelineDat
                 <span className="text-[11px] text-gray-500 px-1">
                   {log.authorName} · {formatTimestamp(log.createdAt)}
                 </span>
-                <img
-                  src={getImageUrl(log.imageUrl) || ''}
-                  alt={log.caption || '로그 이미지'}
-                  className="w-40 h-40 rounded-2xl object-cover border border-gray-800"
-                />
+                <ChatLogPhoto log={log} onReply={handleReplyFromPhoto} />
                 {log.caption && <p className="text-xs text-gray-400 px-1 max-w-60">{log.caption}</p>}
-                {replies.length > 0 && (
-                  <div className="w-full pl-2 mt-1 space-y-2 border-l border-gray-800">
-                    {replies.map((reply, replyIndex) => (
-                      <div key={`${messageReplyKey(reply)}-${replyIndex}`}>
-                        {renderMessageBubble(reply, {
-                          compact: true,
-                          showHeader: replyIndex === 0 || replies[replyIndex - 1].isMe !== reply.isMe,
-                        })}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
           );
@@ -261,6 +447,29 @@ export const ChatPanel = ({ roomPublicId, chatMessages, sharedPosts, timelineDat
       </div>
 
       <div className="p-4 fixed bottom-11 w-full md:w-[25vw] bg-background-main">
+        {replyTarget && (
+          <div className="mb-2 flex items-center gap-2 rounded-xl bg-gray-900 border border-gray-800 px-2.5 py-2">
+            <img
+              src={getImageUrl(replyTarget.imageUrl) || ''}
+              alt="답장 대상"
+              className="w-10 h-10 rounded-lg object-cover shrink-0"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] text-primary font-medium">사진에 답장</p>
+              {replyTarget.caption && (
+                <p className="text-xs text-gray-400 truncate">{replyTarget.caption}</p>
+              )}
+            </div>
+            <button
+              type="button"
+              aria-label="답장 취소"
+              onClick={() => onReply(null)}
+              className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <img
             src={getImageUrl(myImageUrl) || '/default-profile.png'}
@@ -269,6 +478,7 @@ export const ChatPanel = ({ roomPublicId, chatMessages, sharedPosts, timelineDat
           />
           <div className={`flex-1 flex items-center gap-2 bg-gray-900 rounded-full pl-4 pr-1.5 py-1.5 ${isInputDisabled ? 'opacity-50' : ''}`}>
             <input
+              ref={inputRef}
               value={inputValue}
               onChange={(e) => onInputChange(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !isInputDisabled && onSendMessage()}

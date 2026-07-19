@@ -7,9 +7,14 @@ import { LogRoomHeader } from '../../components/log-rooms/LogRoomHeader';
 import { LogTimeline } from '../../components/log-rooms/LogTimeline';
 import { ChatPanel } from '../../components/log-rooms/ChatPanel';
 import { LogPhotoUploadModal } from '../../components/log-rooms/LogPhotoUploadModal';
-import { applyPhotoReplyCache, registerPhotoReply } from '../../lib/photoReplyCache';
+import { applyPhotoReplyCache, messageReplyKey, registerPhotoReply } from '../../lib/photoReplyCache';
 import { expandChatBatches, saveChatBatchSplit } from '../../lib/chatBatchCache';
 import { getErrorMessage, isMobile } from '../../lib/utils';
+import type { ChatMessage } from '../../lib/logRoomApi';
+
+const CHAT_PAGE_SIZE = 10;
+const AI_POLL_INTERVAL_MS = 400;
+const AI_POLL_MAX_ATTEMPTS = 75; // 약 30초
 
 // 로컬 타임존 기준 YYYY-MM-DD (toISOString()은 UTC라 자정~오전9시 KST 구간에서 하루 어긋남)
 const getLocalDateKey = (d = new Date()) => {
@@ -17,6 +22,61 @@ const getLocalDateKey = (d = new Date()) => {
     const m = (d.getMonth() + 1).toString().padStart(2, '0');
     const day = d.getDate().toString().padStart(2, '0');
     return `${y}-${m}-${day}`;
+};
+
+const sortByCreatedAt = (a: ChatMessage, b: ChatMessage) =>
+    new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/** 서버에 저장된 방금 보낸 유저(배치) 메시지 인덱스 */
+const findBatchedUserIndex = (messages: ChatMessage[], batchedContent: string) => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+        if (messages[i].isMe && messages[i].content === batchedContent) return i;
+    }
+    return -1;
+};
+
+const hasAiReplyAfter = (messages: ChatMessage[], userIdx: number) => {
+    if (userIdx < 0) return false;
+    return messages.slice(userIdx + 1).some((m) => !m.isMe);
+};
+
+/**
+ * 전송 직후 바로 GET 하면 AI 답장이 아직 저장되기 전일 수 있다.
+ * 유저 메시지 뒤에 AI(비-isMe) 메시지가 보일 때까지 폴링한다.
+ */
+const waitForAiReply = async (publicId: string, batchedContent: string) => {
+    let last = await logRoomApi.getChatMessages(publicId, { size: CHAT_PAGE_SIZE });
+
+    for (let attempt = 0; attempt < AI_POLL_MAX_ATTEMPTS; attempt++) {
+        const sorted = [...last.messages].sort(sortByCreatedAt);
+        const combinedIdx = findBatchedUserIndex(sorted, batchedContent);
+        if (hasAiReplyAfter(sorted, combinedIdx)) {
+            return { response: last, sorted, combinedIdx };
+        }
+        await sleep(AI_POLL_INTERVAL_MS);
+        last = await logRoomApi.getChatMessages(publicId, { size: CHAT_PAGE_SIZE });
+    }
+
+    const sorted = [...last.messages].sort(sortByCreatedAt);
+    return {
+        response: last,
+        sorted,
+        combinedIdx: findBatchedUserIndex(sorted, batchedContent),
+    };
+};
+
+/** 전송 후 최신 페이지만 받아도, 이미 불러둔 더 오래된 메시지는 유지한다. */
+const mergePreservingOlder = (prev: ChatMessage[], recent: ChatMessage[]) => {
+    if (recent.length === 0) return prev;
+    const recentKeys = new Set(recent.map(messageReplyKey));
+    const oldestRecent = Math.min(...recent.map((m) => new Date(m.createdAt).getTime()));
+    const preserved = prev.filter((m) => {
+        if (recentKeys.has(messageReplyKey(m))) return false;
+        return new Date(m.createdAt).getTime() < oldestRecent;
+    });
+    return [...preserved, ...recent].sort(sortByCreatedAt);
 };
 
 export const LogRoomPage = () => {
@@ -30,6 +90,9 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
     const navigate = useNavigate();
     const [timelineData, setTimelineData] = useState<logRoomApi.DayLogTimeSlot[]>([]);
     const [chatMessages, setChatMessages] = useState<logRoomApi.ChatMessage[]>([]);
+    const [chatNextCursor, setChatNextCursor] = useState<number | null>(null);
+    const [chatHasMore, setChatHasMore] = useState(false);
+    const [isLoadingOlderChat, setIsLoadingOlderChat] = useState(false);
     const [sharedPosts, setSharedPosts] = useState<logRoomApi.SharedPost[]>([]);
     const [participants, setParticipants] = useState<logRoomApi.LogRoomParticipant[]>([]);
     const [memberNames, setMemberNames] = useState<Record<string, string>>({});
@@ -110,27 +173,37 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
         });
     }, [publicId]);
 
-    // 데이터 조회
+    // 타임라인은 선택한 날짜가 바뀔 때마다 다시 조회
     useEffect(() => {
         if (!publicId) return;
 
-        const fetchData = async () => {
+        const fetchTimeline = async () => {
             try {
-                // 타임라인 조회
                 const timelineResponse = await logRoomApi.getDayLog(publicId, selectedDate);
                 setTimelineData(timelineResponse);
+            } catch (e) {
+                console.error(getErrorMessage(e, '타임라인을 불러오는 중 오류가 발생했습니다.'));
+            }
+        };
+        fetchTimeline();
+    }, [publicId, selectedDate]);
 
-                // 채팅 조회 (사진 답장 연결은 서버가 안 내려주므로 로컬 캐시로 복원)
-                const chatResponse = await logRoomApi.getChatMessages(publicId);
+    // 채팅/방 정보는 방 진입 시 한 번만 (날짜 변경으로 채팅 페이지네이션을 리셋하지 않음)
+    useEffect(() => {
+        if (!publicId) return;
+
+        const fetchRoomData = async () => {
+            try {
+                const chatResponse = await logRoomApi.getChatMessages(publicId, { size: CHAT_PAGE_SIZE });
                 setChatMessages(
                     expandChatBatches(publicId, applyPhotoReplyCache(publicId, chatResponse.messages)),
                 );
+                setChatNextCursor(chatResponse.nextCursor);
+                setChatHasMore(chatResponse.hasMore);
 
-                // 공유 게시물 조회
                 const postResponse = await logRoomApi.getLogRoomPosts(publicId);
                 setSharedPosts(postResponse.content);
 
-                // 이 방의 참여자 정보를 위해 로그방 목록 조회
                 const roomListResponse = await logRoomApi.getMyLogRooms();
                 const room = roomListResponse.content.find(r => r.publicId === publicId);
                 console.log("Room List Response:", roomListResponse);
@@ -140,16 +213,11 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
                     setOwnerPublicId(room.ownerPublicId);
                     setRoomName(room.name);
 
-                    // 방장은 사람 유저라 캐릭터 카드 API로 이름을 못 가져온다.
-                    // 대신 방 목록 응답에 이미 닉네임이 있으므로 그걸 쓴다.
-                    // 주의: room.ownerPublicId는 계정 ID이고, 방 멤버의 memberPublicId와는 다르다.
-                    // 그래서 isOwner로 표시된 참여자를 찾아 이름을 넣는다.
                     const ownerParticipant = room.participants.find(p => p.isOwner);
                     if (ownerParticipant) {
                         setMemberNames(prev => ({ ...prev, [ownerParticipant.memberPublicId]: room.ownerNickname }));
                     }
 
-                    // 아직 모르는 캐릭터 참여자 표시 이름 조회
                     const missingIds = room.participants
                         .filter(p => !p.isUser && !p.isOwner && !(p.memberPublicId in memberNames))
                         .map(p => p.memberPublicId);
@@ -169,8 +237,38 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
                 console.error(getErrorMessage(e, '데이터를 불러오는 중 오류가 발생했습니다.'));
             }
         };
-        fetchData();
-    }, [publicId, selectedDate]);
+        fetchRoomData();
+        // memberNames는 초기 로드 시 비어 있는 것이 정상이므로 deps에서 제외
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [publicId]);
+
+    const loadOlderChatMessages = useCallback(async () => {
+        if (!publicId || !chatHasMore || chatNextCursor == null || isLoadingOlderChat) return;
+
+        setIsLoadingOlderChat(true);
+        try {
+            const response = await logRoomApi.getChatMessages(publicId, {
+                cursor: chatNextCursor,
+                size: CHAT_PAGE_SIZE,
+            });
+            const older = expandChatBatches(
+                publicId,
+                applyPhotoReplyCache(publicId, response.messages),
+            );
+
+            setChatMessages((prev) => {
+                const existing = new Set(prev.map(messageReplyKey));
+                const uniqueOlder = older.filter((m) => !existing.has(messageReplyKey(m)));
+                return [...uniqueOlder, ...prev].sort(sortByCreatedAt);
+            });
+            setChatNextCursor(response.nextCursor);
+            setChatHasMore(response.hasMore);
+        } catch (e) {
+            console.error(getErrorMessage(e, '이전 채팅을 불러오는 중 오류가 발생했습니다.'));
+        } finally {
+            setIsLoadingOlderChat(false);
+        }
+    }, [publicId, chatHasMore, chatNextCursor, isLoadingOlderChat]);
 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -219,7 +317,8 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
         }
     };
 
-    // 유저 메시지는 화면에 각각 표시하고, 5초 디바운스 후 서버로만 묶어서 전송한다.
+    // 유저 메시지는 화면에 각각 표시하고, 일반 채팅은 5초 디바운스 후 서버로 묶어서 전송한다.
+    // 사진 답장은 sendMessage에서 디바운스 없이 바로 flush한다.
     const flushPendingChats = async () => {
         if (!publicId || pendingChatsRef.current.length === 0) return;
 
@@ -242,18 +341,12 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
                 photoPublicId: lastPhotoId,
             });
 
-            const updatedResponse = await logRoomApi.getChatMessages(publicId);
-            const sorted = [...updatedResponse.messages].sort(
-                (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+            // POST 직후 단발 GET은 AI 저장 전 스냅샷을 받을 수 있어,
+            // 유저 메시지 뒤에 AI 답장이 보일 때까지 기다린다.
+            const { response: updatedResponse, sorted, combinedIdx } = await waitForAiReply(
+                publicId,
+                batchedContent,
             );
-
-            let combinedIdx = -1;
-            for (let i = sorted.length - 1; i >= 0; i--) {
-                if (sorted[i].isMe && sorted[i].content === batchedContent) {
-                    combinedIdx = i;
-                    break;
-                }
-            }
 
             const before = combinedIdx >= 0 ? sorted.slice(0, combinedIdx) : sorted;
             const after = combinedIdx >= 0 ? sorted.slice(combinedIdx + 1) : [];
@@ -286,18 +379,21 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
                 afterMessages = applyPhotoReplyCache(publicId, after);
             }
 
-            setChatMessages([
+            const recent = [
                 ...expandChatBatches(publicId, applyPhotoReplyCache(publicId, before)),
                 ...individuals,
                 ...afterMessages,
-            ]);
+            ];
+            setChatMessages((prev) => mergePreservingOlder(prev, recent));
         } catch (e) {
             console.error(getErrorMessage(e, '메시지 전송 중 오류가 발생했습니다.'));
             try {
-                const updatedResponse = await logRoomApi.getChatMessages(publicId);
-                setChatMessages(
-                    expandChatBatches(publicId, applyPhotoReplyCache(publicId, updatedResponse.messages)),
+                const updatedResponse = await logRoomApi.getChatMessages(publicId, { size: CHAT_PAGE_SIZE });
+                const recent = expandChatBatches(
+                    publicId,
+                    applyPhotoReplyCache(publicId, updatedResponse.messages),
                 );
+                setChatMessages((prev) => mergePreservingOlder(prev, recent));
             } catch {
                 /* 무시 */
             }
@@ -330,9 +426,17 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
         ]);
 
         if (aiDebounceTimerRef.current) clearTimeout(aiDebounceTimerRef.current);
-        aiDebounceTimerRef.current = setTimeout(() => {
+
+        // 사진 답장은 디바운스 없이 바로 전송해 AI가 즉시 응답하도록 한다.
+        // 일반 메시지는 연속 입력을 묶기 위해 5초 디바운스를 유지한다.
+        if (quotedPhotoPublicId) {
+            aiDebounceTimerRef.current = null;
             void flushPendingChats();
-        }, 5000);
+        } else {
+            aiDebounceTimerRef.current = setTimeout(() => {
+                void flushPendingChats();
+            }, 5000);
+        }
     };
 
     // 현재 선택된 (날짜, 시간대)를 게시물로 공유하고, 모든 로그방의 공유 게시물이 모이는
@@ -457,10 +561,14 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
                         onInputChange={setInputValue}
                         onSendMessage={sendMessage}
                         replyPhotoId={replyPhotoId}
+                        onReply={setReplyPhotoId}
                         onJumpToLog={jumpToLog}
                         myImageUrl={participants.find(p => p.isUser)?.imageUrl ?? null}
                         characterName={characterName}
                         characterImageUrl={characterParticipant?.imageUrl ?? null}
+                        hasMore={chatHasMore}
+                        isLoadingOlder={isLoadingOlderChat}
+                        onLoadOlder={loadOlderChatMessages}
                     />
                 )}
             </div>
