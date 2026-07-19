@@ -31,29 +31,31 @@ export const PostDetailModal = ({ post, onClose }: PostDetailModalProps) => {
           </div>
 
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img
-                src={getImageUrl(post.sharer.profileImageUrl) || '/default-profile.png'}
-                alt={post.sharer.nickname}
-                className="w-11 h-11 rounded-full object-cover"
-              />
-              <div>
-                <h2 className="text-xl font-bold text-white">{post.sharer.nickname}</h2>
-                <p className="text-sm text-base-500 mt-0.5">
-                  {post.photos.map(p => p.authorName).join(', ')}
-                </p>
-              </div>
+            <div>
+              <h2 className="text-xl font-bold text-white">{post.roomName}</h2>
+              <p className="text-sm text-base-500 mt-0.5">
+                {post.participants.map(p => p.name).join(', ')}
+              </p>
             </div>
             <div className="flex -space-x-2">
-              {post.photos.map(p => (
+              {post.participants.map(p => (
                 <img
                   key={p.memberPublicId}
-                  src={getImageUrl(p.authorImageUrl) || '/default-profile.png'}
-                  alt={p.authorName}
+                  src={getImageUrl(p.imageUrl) || '/default-profile.png'}
+                  alt={p.name}
                   className="w-10 h-10 rounded-full border-2 border-base-950 object-cover"
                 />
               ))}
             </div>
+          </div>
+
+          <div className="flex items-center gap-2 mt-4">
+            <img
+              src={getImageUrl(post.sharer.profileImageUrl) || '/default-profile.png'}
+              alt={post.sharer.nickname}
+              className="w-6 h-6 rounded-full object-cover"
+            />
+            <span className="text-xs text-base-500">{post.sharer.nickname}님이 공유함</span>
           </div>
         </div>
 

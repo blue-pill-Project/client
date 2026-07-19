@@ -77,6 +77,8 @@ export interface SharedPostPhoto {
 
 export interface SharedPost {
   publicId: string;
+  roomPublicId: string;
+  roomName: string;
   postDate: string;
   timeSlot: number;
   sharer: {
@@ -86,6 +88,7 @@ export interface SharedPost {
   };
   isMine: boolean;
   createdAt: string;
+  participants: LogRoomParticipant[];
   photos: SharedPostPhoto[];
 }
 
