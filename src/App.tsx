@@ -3,6 +3,7 @@ import DesignPage from './pages/design/page';
 import CharacterLibraryPage from './pages/library/page';
 import ProfilePage from './pages/profile/page';
 import CallbackPage from './pages/auth/CallbackPage';
+import LoginRedirectPage from './pages/auth/LoginRedirectPage';
 import LogRoomListPage from './pages/log-rooms/LogRoomListPage';
 import { LogRoomPage } from './pages/log-rooms/LogRoomPage';
 import LogRoomCreationPage from './pages/log-rooms/LogRoomCreationPage';
@@ -83,6 +84,7 @@ function App() {
         {/* Public routes */}
         <Route path="/users/:publicId" element={<ProfilePage />} />
         <Route path="/auth/callback" element={<CallbackPage />} />
+        <Route path="/login" element={<LoginRedirectPage />} />
         <Route path="/design-system" element={<DesignPage />} />
       </Routes>
       <AuthModal />
