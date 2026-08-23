@@ -53,7 +53,7 @@ const CharacterCardComponent: React.FC<CharacterCardProps> = ({ char, onClick, c
   return (
     <article key={char.publicId} className={cn("group cursor-pointer relative", className)} onClick={onClick}>
       <div className="relative aspect-square mb-3 overflow-hidden rounded-2xl bg-base-900">
-        <img src={getImageUrl(char.imageUrl) || ''} alt={char.name} className="size-full object-cover opacity-70 group-hover:opacity-100 transition-all duration-700 scale-105 group-hover:scale-100" />
+        <img src={getImageUrl(char.imageUrl) || '/default-profile.svg'} alt={char.name} className="size-full object-cover opacity-70 group-hover:opacity-100 transition-all duration-700 scale-105 group-hover:scale-100" />
         <Chip className='absolute bottom-2 right-2' variant='black' icon={<FireIcon />}>{char.useCount} M</Chip>
       </div>
       <div>

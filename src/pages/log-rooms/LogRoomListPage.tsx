@@ -128,7 +128,7 @@ const LogRoomListPage = () => {
                 <div className="absolute -bottom-5 right-4 z-10 flex -space-x-3">
                   {room.participants.slice(0, 3).map((p, idx) => (
                     <div key={idx} className="w-11 h-11 rounded-full border-2 border-black/40 overflow-hidden bg-base-800">
-                      <img src={getImageUrl(p.imageUrl) || '/default-avatar.png'} alt="participant" className="w-full h-full object-cover" />
+                      <img src={getImageUrl(p.imageUrl) || '/default-profile.svg'} alt="participant" className="w-full h-full object-cover" />
                     </div>
                   ))}
                 </div>

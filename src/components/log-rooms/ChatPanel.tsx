@@ -342,7 +342,7 @@ export const ChatPanel = ({
       <div className={`flex items-end gap-2 ${msg.isMe ? 'flex-row-reverse' : 'flex-row'}`}>
         {!msg.isMe && (
           <img
-            src={getImageUrl(characterImageUrl) || '/default-profile.png'}
+            src={getImageUrl(characterImageUrl) || '/default-profile.svg'}
             alt={characterName || '캐릭터'}
             className="w-7 h-7 rounded-full object-cover shrink-0"
           />
@@ -472,7 +472,7 @@ export const ChatPanel = ({
         )}
         <div className="flex items-center gap-2">
           <img
-            src={getImageUrl(myImageUrl) || '/default-profile.png'}
+            src={getImageUrl(myImageUrl) || '/default-profile.svg'}
             alt="me"
             className="w-9 h-9 rounded-full object-cover shrink-0"
           />

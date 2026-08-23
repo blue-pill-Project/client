@@ -89,7 +89,7 @@ export const LogTimeline = ({
                 <div className="absolute top-5 left-5 flex items-center gap-3">
                   <div className="relative">
                     <img
-                      src={getImageUrl(participant.imageUrl) || '/default-profile.png'}
+                      src={getImageUrl(participant.imageUrl) || '/default-profile.svg'}
                       alt={entry.authorName}
                       className="w-11 h-11 rounded-full border-2 border-white/20 object-cover shadow-lg"
                     />
@@ -136,7 +136,7 @@ export const LogTimeline = ({
               >
                 <div className="absolute top-4 left-4 flex items-center gap-4 opacity-30">
                   <img
-                    src={getImageUrl(participant.imageUrl) || '/default-profile.png'}
+                    src={getImageUrl(participant.imageUrl) || '/default-profile.svg'}
                     alt={displayName || ''}
                     className="w-12 h-12 rounded-full object-cover grayscale border-2 border-gray-950 shadow-lg"
                   />

@@ -72,7 +72,7 @@ export const LogRoomHeader = ({
               {participants.map((p, i) => (
                 <img
                   key={i}
-                  src={getImageUrl(p.imageUrl) || '/default-profile.png'}
+                  src={getImageUrl(p.imageUrl) || '/default-profile.svg'}
                   alt="participant"
                   className="w-7 h-7 rounded-full border-2 border-gray-900 object-cover"
                 />

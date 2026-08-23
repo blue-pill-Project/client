@@ -235,7 +235,7 @@ const LogRoomPostListPage = () => {
 
                         <div className="absolute top-3.5 left-3.5 flex items-center gap-2 min-w-0 max-w-[75%]">
                           <img
-                            src={getImageUrl(authorImage) || '/default-profile.png'}
+                            src={getImageUrl(authorImage) || '/default-profile.svg'}
                             alt={authorName}
                             className="w-8 h-8 rounded-full object-cover border border-white/20 shrink-0"
                           />

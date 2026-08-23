@@ -26,7 +26,7 @@ export const CharacterInfoModal: React.FC<CharacterInfoModalProps> = ({ characte
     return (
         <Modal isOpen={!!character} onClose={onClose} title="캐릭터 정보">
             <div className="aspect-square w-full overflow-hidden border-b border-base-700 bg-base-800 box-border">
-                <img src={getImageUrl(character.imageUrl) || ''} alt={character.name} className="w-full h-full object-cover" />
+                <img src={getImageUrl(character.imageUrl) || '/default-profile.svg'} alt={character.name} className="w-full h-full object-cover" />
             </div>
             <div className="py-5 px-4">
                 <div>
