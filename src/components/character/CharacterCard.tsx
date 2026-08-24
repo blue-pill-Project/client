@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { R2_DOMAIN } from '../../lib/config';
 import type { CharacterCard } from '../../lib/characterApi';
 import Chip from '../common/Chip';
@@ -26,6 +27,7 @@ const getImageUrl = (key: string | null) => {
 };
 
 const CharacterCardComponent: React.FC<CharacterCardProps> = ({ char, onClick, className, creatorNickname, isOwner, onEdit, onDelete }) => {
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -59,7 +61,13 @@ const CharacterCardComponent: React.FC<CharacterCardProps> = ({ char, onClick, c
       <div>
         <h3 className="text-body-2 font-semibold text-base-300">{char.name} <Chip variant='gray' size='s'>#{char.characterCode}</Chip></h3>
         <div className="text-body-4 my-1 text-base-500 line-clamp-2">{char.description}</div>
-        <Chip variant='gray' size='s' icon={<UserIcon />}>{creatorNickname || char.creatorNickname}</Chip>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); navigate(`/users/${char.creatorPublicId}`); }}
+          className="cursor-pointer hover:opacity-80 transition-opacity"
+        >
+          <Chip variant='gray' size='s' icon={<UserIcon />}>{creatorNickname || char.creatorNickname}</Chip>
+        </button>
       </div>
       {isOwner && (
         <button

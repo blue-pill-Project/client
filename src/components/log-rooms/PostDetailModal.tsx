@@ -1,4 +1,5 @@
 import { Clock, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { SharedPost } from '../../lib/logRoomApi';
 import { getImageUrl } from '../../lib/utils';
 
@@ -49,14 +50,17 @@ export const PostDetailModal = ({ post, onClose }: PostDetailModalProps) => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 mt-4">
+          <Link
+            to={`/users/${post.sharer.publicId}`}
+            className="flex items-center gap-2 mt-4 w-fit hover:opacity-80 transition-opacity"
+          >
             <img
               src={getImageUrl(post.sharer.profileImageUrl) || '/default-profile.svg'}
               alt={post.sharer.nickname}
               className="w-6 h-6 rounded-full object-cover"
             />
             <span className="text-xs text-base-500">{post.sharer.nickname}님이 공유함</span>
-          </div>
+          </Link>
         </div>
 
         <div className="flex-1 overflow-y-auto px-8 pb-8 space-y-4 hide-scrollbar">
