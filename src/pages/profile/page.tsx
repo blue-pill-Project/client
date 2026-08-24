@@ -10,6 +10,7 @@ import { useDeleteCharacter } from '../../hooks/useDeleteCharacter';
 import { updateProfileVisibility } from '../../lib/authApi';
 import { api } from '../../lib/api';
 import ProfileEditModal from '../../components/profile/ProfileEditModal';
+import WithdrawModal from '../../components/profile/WithdrawModal';
 import type { CharacterCard } from '../../lib/characterApi';
 import { getCharacterCardDetail } from '../../lib/characterApi';
 import CharacterCardComponent from '../../components/character/CharacterCard';
@@ -25,6 +26,7 @@ const ProfilePage = () => {
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<CharacterCard | null>(null);
 
   const isOwner = !paramPublicId || paramPublicId === currentUser?.publicId;
@@ -135,6 +137,14 @@ const ProfilePage = () => {
                 checked={!profileUser.isPublic}
                 onChange={(checked) => handleVisibilityChange(!checked)}
               />
+
+              <button
+                type="button"
+                onClick={() => setIsWithdrawModalOpen(true)}
+                className="typo-body-4 text-base-600 hover:text-system-error transition-colors cursor-pointer"
+              >
+                회원 탈퇴
+              </button>
             </div>
           )}
         </section>
@@ -176,6 +186,13 @@ const ProfilePage = () => {
           currentNickname={profileUser.nickname || ''}
           currentImageUrl={profileUser.profileImageUrl}
           onSuccess={handleEditSuccess}
+        />
+      )}
+
+      {isOwner && (
+        <WithdrawModal
+          isOpen={isWithdrawModalOpen}
+          onClose={() => setIsWithdrawModalOpen(false)}
         />
       )}
     </PageLayout>
