@@ -24,7 +24,7 @@ const CharacterLibraryPage = () => {
     sort,
     setSort,
     loadMore,
-    refresh,
+    removeCharacter,
     totalCount
   } = useCharacterLibrary();
 
@@ -76,7 +76,7 @@ const CharacterLibraryPage = () => {
             char={char}
             onClick={() => setSelectedCharacter(char)}
             onEdit={() => navigate(`/library/edit/${char.publicId}`)}
-            onDelete={() => deleteCharacter(char.publicId, refresh)} />
+            onDelete={() => deleteCharacter(char.publicId, () => removeCharacter(char.publicId))} />
         ))}
       </div>
 

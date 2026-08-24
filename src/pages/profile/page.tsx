@@ -33,9 +33,8 @@ const ProfilePage = () => {
   const isOwner = !paramPublicId || paramPublicId === currentUser?.publicId;
   const targetPublicId = paramPublicId || currentUser?.publicId;
 
-  const { characters, loading: charsLoading } = useUserCharacterCards(targetPublicId);
+  const { characters, loading: charsLoading, refresh } = useUserCharacterCards(targetPublicId);
   const { deleteCharacter } = useDeleteCharacter();
-  const { refresh } = useUserCharacterCards(targetPublicId);
 
   useEffect(() => {
     const fetchProfile = async () => {

@@ -58,6 +58,12 @@ export const useCharacterLibrary = (initialSize = 10) => {
     }
   };
 
+  // 삭제 직후 재조회 없이 목록에서 바로 제거해 즉시 리렌더링되도록 한다.
+  const removeCharacter = (publicId: string) => {
+    setCharacters((prev) => prev.filter((c) => c.publicId !== publicId));
+    setTotalCount((prev) => Math.max(0, prev - 1));
+  };
+
   return {
     characters,
     loading,
@@ -69,6 +75,7 @@ export const useCharacterLibrary = (initialSize = 10) => {
     setSort,
     loadMore,
     refresh: () => fetchCharacters(true),
+    removeCharacter,
     totalCount
   };
 };
