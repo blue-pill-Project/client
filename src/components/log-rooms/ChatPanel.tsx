@@ -511,7 +511,7 @@ export const ChatPanel = ({
               }}
               placeholder={
                 isInputDisabled
-                  ? 'AI 답장 대기 중...'
+                  ? `${characterName || 'AI'}의 답장 대기 중...`
                   : replyPhotoId
                     ? '사진에 답장 중...'
                     : '메시지'
