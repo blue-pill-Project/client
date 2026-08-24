@@ -28,6 +28,7 @@ const ProfilePage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<CharacterCard | null>(null);
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
 
   const isOwner = !paramPublicId || paramPublicId === currentUser?.publicId;
   const targetPublicId = paramPublicId || currentUser?.publicId;
@@ -44,6 +45,7 @@ const ProfilePage = () => {
         const userData = await api.get<User>(`/users/${targetPublicId}`);
         console.log('서버에서 가져온 프로필 데이터:', userData);
         setProfileUser(userData);
+        setAvatarLoadFailed(false);
       } catch (err) {
         console.error(getErrorMessage(err, '프로필을 불러오는 중 오류가 발생했습니다.'));
       } finally {
@@ -82,6 +84,7 @@ const ProfilePage = () => {
       nickname: newNickname,
       profileImageUrl: newImageUrl
     } : prev);
+    setAvatarLoadFailed(false);
   };
 
 
@@ -104,8 +107,13 @@ const ProfilePage = () => {
           <div className="flex items-center gap-8">
             {/* 아바타 */}
             <div className="w-24 h-24 md:w-35 md:h-35 rounded-full border border-base-400 flex items-center justify-center bg-background-main text-display-2 font-bold text-base-400">
-              {profileUser.profileImageUrl ? (
-                <img src={getImageUrl(profileUser.profileImageUrl) || ''} alt="profile" className="w-full h-full rounded-full object-cover" onError={(e) => console.error('이미지 로딩 실패:', e)} />
+              {profileUser.profileImageUrl && !avatarLoadFailed ? (
+                <img
+                  src={getImageUrl(profileUser.profileImageUrl) || ''}
+                  alt="profile"
+                  className="w-full h-full rounded-full object-cover"
+                  onError={() => setAvatarLoadFailed(true)}
+                />
               ) : (
                 firstLetter
               )}

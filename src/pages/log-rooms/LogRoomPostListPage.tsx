@@ -10,7 +10,7 @@ import { PostDetailModal } from '../../components/log-rooms/PostDetailModal';
 import { PlusIcon } from '../../components/icons/PlusIcon';
 import * as logRoomApi from '../../lib/logRoomApi';
 import type { SharedPost, PostShareResponse, LogRoomParticipant } from '../../lib/logRoomApi';
-import { getErrorMessage, getImageUrl } from '../../lib/utils';
+import { getErrorMessage, getImageUrl, handleAvatarError } from '../../lib/utils';
 
 interface RoomGroup {
   roomPublicId: string;
@@ -236,6 +236,7 @@ const LogRoomPostListPage = () => {
                         <div className="absolute top-3.5 left-3.5 flex items-center gap-2 min-w-0 max-w-[75%]">
                           <img
                             src={getImageUrl(authorImage) || '/default-profile.svg'}
+                            onError={handleAvatarError}
                             alt={authorName}
                             className="w-8 h-8 rounded-full object-cover border border-white/20 shrink-0"
                           />

@@ -2,7 +2,7 @@ import { useRef, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { MoreVertical, Reply, Send, X } from 'lucide-react';
 import { getDayLog } from '../../lib/logRoomApi';
 import type { ChatMessage, SharedPost, DayLogTimeSlot, DayLogEntry } from '../../lib/logRoomApi';
-import { getImageUrl } from '../../lib/utils';
+import { getImageUrl, handleAvatarError } from '../../lib/utils';
 
 interface LogEntryItem extends DayLogEntry {
   dateKey: string;
@@ -351,6 +351,7 @@ export const ChatPanel = ({
         {!msg.isMe && (
           <img
             src={getImageUrl(characterImageUrl) || '/default-profile.svg'}
+            onError={handleAvatarError}
             alt={characterName || '캐릭터'}
             className="w-7 h-7 rounded-full object-cover shrink-0"
           />
@@ -483,6 +484,7 @@ export const ChatPanel = ({
         <div className="flex items-center gap-2">
           <img
             src={getImageUrl(myImageUrl) || '/default-profile.svg'}
+            onError={handleAvatarError}
             alt="me"
             className="w-9 h-9 rounded-full object-cover shrink-0"
           />

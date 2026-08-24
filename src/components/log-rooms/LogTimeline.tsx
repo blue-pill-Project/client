@@ -1,7 +1,7 @@
 import { Send, Crown } from 'lucide-react';
 import { useMemo } from 'react';
 import type { ChatMessage, DayLogTimeSlot, LogRoomParticipant, SharedPost, DayLogEntry } from '../../lib/logRoomApi';
-import { getImageUrl } from '../../lib/utils';
+import { getImageUrl, handleAvatarError } from '../../lib/utils';
 import Button from '../common/Button';
 import { PlusIcon } from '../icons/PlusIcon';
 
@@ -90,6 +90,7 @@ export const LogTimeline = ({
                   <div className="relative">
                     <img
                       src={getImageUrl(participant.imageUrl) || '/default-profile.svg'}
+                      onError={handleAvatarError}
                       alt={entry.authorName}
                       className="w-11 h-11 rounded-full border-2 border-white/20 object-cover shadow-lg"
                     />
@@ -137,6 +138,7 @@ export const LogTimeline = ({
                 <div className="absolute top-4 left-4 flex items-center gap-4 opacity-30">
                   <img
                     src={getImageUrl(participant.imageUrl) || '/default-profile.svg'}
+                    onError={handleAvatarError}
                     alt={displayName || ''}
                     className="w-12 h-12 rounded-full object-cover grayscale border-2 border-gray-950 shadow-lg"
                   />

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Calendar, Share2, ArrowLeft, MessageCircleMore, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getImageUrl } from '../../lib/utils';
+import { getImageUrl, handleAvatarError } from '../../lib/utils';
 import type { DayLogTimeSlot } from '../../lib/logRoomApi';
 import { MonthCalendar } from '../common/MonthCalendar';
 
@@ -79,6 +79,7 @@ export const LogRoomHeader = ({
                 <img
                   key={i}
                   src={getImageUrl(p.imageUrl) || '/default-profile.svg'}
+                  onError={handleAvatarError}
                   alt="participant"
                   className="w-7 h-7 rounded-full border-2 border-gray-900 object-cover"
                 />

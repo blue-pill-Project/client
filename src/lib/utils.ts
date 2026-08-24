@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import type { SyntheticEvent } from 'react';
 import { R2_DOMAIN } from './config';
 
 /**
@@ -14,6 +15,18 @@ export const getImageUrl = (key: string | null) => {
   if (!key) return null;
   if (key.startsWith('http')) return key;
   return `${R2_DOMAIN}/${key}`;
+};
+
+/**
+ * 프로필/아바타 <img>의 onError 핸들러 — 실제 로드가 실패했을 때(URL은 있지만
+ * R2에서 삭제됐거나 깨진 경우 등) 기본 아바타로 교체한다. `getImageUrl(...) || '/default-profile.svg'`는
+ * URL 자체가 없는 경우만 처리하므로, 존재하는 URL이 로드 실패하는 경우는 이 핸들러가 필요하다.
+ */
+export const handleAvatarError = (e: SyntheticEvent<HTMLImageElement>) => {
+  const img = e.currentTarget;
+  if (img.src.endsWith('/default-profile.svg')) return; // 기본 이미지 자체가 실패하면 더 이상 시도하지 않음
+  img.onerror = null;
+  img.src = '/default-profile.svg';
 };
 
 export const isMobile = () => {

@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Chip from "../common/Chip";
 import Button from "../common/Button";
-import { getImageUrl } from '../../lib/utils';
+import { getImageUrl, handleAvatarError } from '../../lib/utils';
 import { UserIcon } from '../icons/UserIcon';
 import { UseCountIcon } from '../icons/UserCountIcon';
 import { PlusIcon } from '../icons/PlusIcon';
@@ -26,7 +26,7 @@ export const CharacterInfoModal: React.FC<CharacterInfoModalProps> = ({ characte
     return (
         <Modal isOpen={!!character} onClose={onClose} title="캐릭터 정보">
             <div className="aspect-square w-full overflow-hidden border-b border-base-700 bg-base-800 box-border">
-                <img src={getImageUrl(character.imageUrl) || '/default-profile.svg'} alt={character.name} className="w-full h-full object-cover" />
+                <img src={getImageUrl(character.imageUrl) || '/default-profile.svg'} onError={handleAvatarError} alt={character.name} className="w-full h-full object-cover" />
             </div>
             <div className="py-5 px-4">
                 <div>

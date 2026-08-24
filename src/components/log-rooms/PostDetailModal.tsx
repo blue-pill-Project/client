@@ -1,7 +1,7 @@
 import { Clock, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { SharedPost } from '../../lib/logRoomApi';
-import { getImageUrl } from '../../lib/utils';
+import { getImageUrl, handleAvatarError } from '../../lib/utils';
 
 interface PostDetailModalProps {
   post: SharedPost | null;
@@ -43,6 +43,7 @@ export const PostDetailModal = ({ post, onClose }: PostDetailModalProps) => {
                 <img
                   key={p.memberPublicId}
                   src={getImageUrl(p.imageUrl) || '/default-profile.svg'}
+                  onError={handleAvatarError}
                   alt={p.name}
                   className="w-10 h-10 rounded-full border-2 border-base-950 object-cover"
                 />
@@ -56,6 +57,7 @@ export const PostDetailModal = ({ post, onClose }: PostDetailModalProps) => {
           >
             <img
               src={getImageUrl(post.sharer.profileImageUrl) || '/default-profile.svg'}
+              onError={handleAvatarError}
               alt={post.sharer.nickname}
               className="w-6 h-6 rounded-full object-cover"
             />
@@ -82,6 +84,7 @@ export const PostDetailModal = ({ post, onClose }: PostDetailModalProps) => {
                 <div className="absolute top-4 left-4 flex items-center gap-2">
                   <img
                     src={getImageUrl(photo.authorImageUrl) || '/default-profile.svg'}
+                    onError={handleAvatarError}
                     alt={photo.authorName}
                     className="w-9 h-9 rounded-full border-2 border-white/20 object-cover"
                   />
