@@ -60,6 +60,14 @@ const formatTimestamp = (isoString: string) => {
   return `${y}. ${m}. ${d}. ${hh}:${mm}`;
 };
 
+// 이름 마지막 글자의 받침 유무로 "이/가" 주격 조사를 고른다 (한글이 아니면 "가"로 폴백)
+const withSubjectParticle = (name: string) => {
+  const lastChar = name.charCodeAt(name.length - 1);
+  const isHangulSyllable = lastChar >= 0xAC00 && lastChar <= 0xD7A3;
+  const hasBatchim = isHangulSyllable && (lastChar - 0xAC00) % 28 !== 0;
+  return `${name}${hasBatchim ? '이' : '가'}`;
+};
+
 const toLogEntryItems = (dateKey: string, slots: DayLogTimeSlot[]): LogEntryItem[] =>
   slots.flatMap(slot =>
     slot.entries.map(entry => ({
@@ -441,7 +449,9 @@ export const ChatPanel = ({
           );
         })}
         {isAiTyping && (
-          <div className="text-xs text-gray-400 p-2 italic">AI가 생각하는 중...</div>
+          <div className="text-xs text-gray-400 p-2 italic">
+            {characterName ? `${withSubjectParticle(characterName)} 작성 중...` : 'AI가 생각하는 중...'}
+          </div>
         )}
         <div ref={chatEndRef} />
       </div>
