@@ -69,7 +69,7 @@ export const LogRoomHeader = ({
       <div className="w-full flex items-start justify-between px-8 mb-6">
         {/* Left: Back Button */}
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/log-rooms')}
           className="p-2.5 rounded-full bg-background-main border border-gray-700 text-gray-400 hover:text-white transition-colors cursor-pointer"
         >
           <ArrowLeft size={20} />
