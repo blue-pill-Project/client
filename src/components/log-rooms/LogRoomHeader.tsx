@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Calendar, Share2, ArrowLeft, MessageCircleMore } from 'lucide-react';
+import { Calendar, Share2, ArrowLeft, MessageCircleMore, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getImageUrl } from '../../lib/utils';
 import type { DayLogTimeSlot } from '../../lib/logRoomApi';
@@ -19,6 +19,9 @@ interface LogRoomHeaderProps {
   onCalendarMonthChange?: (year: number, month: number) => void;
   onShare: () => void;
   isSharing: boolean;
+  isOwner?: boolean;
+  onDelete?: () => void;
+  isDeleting?: boolean;
 }
 
 export const LogRoomHeader = ({
@@ -34,7 +37,10 @@ export const LogRoomHeader = ({
   markedDates,
   onCalendarMonthChange,
   onShare,
-  isSharing
+  isSharing,
+  isOwner,
+  onDelete,
+  isDeleting
 }: LogRoomHeaderProps) => {
   const navigate = useNavigate();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -136,6 +142,16 @@ export const LogRoomHeader = ({
           >
             <Share2 size={20} />
           </button>
+
+          {isOwner && (
+            <button
+              onClick={onDelete}
+              disabled={isDeleting}
+              className="p-2.5 rounded-full bg-background-main border border-gray-700 text-gray-400 hover:text-red-400 hover:border-red-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Trash2 size={20} />
+            </button>
+          )}
         </div>
 
         <button

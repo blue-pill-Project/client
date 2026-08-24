@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import * as logRoomApi from '../../lib/logRoomApi';
 import PageLayout from '../../components/layout/PageLayout';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useR2Upload } from '../../hooks/useR2Upload';
 import { LogRoomHeader } from '../../components/log-rooms/LogRoomHeader';
 import { LogTimeline } from '../../components/log-rooms/LogTimeline';
@@ -88,6 +89,7 @@ export const LogRoomPage = () => {
 
 const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
     const navigate = useNavigate();
+    const currentUser = useAuthStore((state) => state.user);
     const [timelineData, setTimelineData] = useState<logRoomApi.DayLogTimeSlot[]>([]);
     const [chatMessages, setChatMessages] = useState<logRoomApi.ChatMessage[]>([]);
     const [chatNextCursor, setChatNextCursor] = useState<number | null>(null);
@@ -113,6 +115,7 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
 
     const [isChatOpen, setIsChatOpen] = useState(true);
     const [isSharing, setIsSharing] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [pendingFile, setPendingFile] = useState<File | null>(null);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -461,6 +464,24 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
         }
     };
 
+    // 방장만 방을 삭제할 수 있다 (LogRoomHeader에서 isOwner일 때만 버튼 노출).
+    const handleDeleteRoom = async () => {
+        if (isDeleting) return;
+        if (!confirm('정말로 이 로그방을 삭제하시겠습니까? 대화, 사진, 게시물이 모두 삭제되며 되돌릴 수 없습니다.')) return;
+
+        setIsDeleting(true);
+        try {
+            await logRoomApi.deleteLogRoom(publicId);
+            navigate('/log-rooms', { replace: true });
+        } catch (error) {
+            const message = getErrorMessage(error, '로그방 삭제에 실패했습니다.');
+            console.error(message);
+            alert(message);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     // 달력에서 날짜를 고르면, 그 날짜에 로그가 있는 타임슬롯 중 가장 늦은 구간으로 이동한다.
     const handleDateChange = async (date: string) => {
         setSelectedDate(date);
@@ -522,6 +543,9 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
                 onCalendarMonthChange={loadCalendarMonth}
                 onShare={handleShare}
                 isSharing={isSharing}
+                isOwner={!!ownerPublicId && ownerPublicId === currentUser?.publicId}
+                onDelete={handleDeleteRoom}
+                isDeleting={isDeleting}
             />
 
             <div className="flex max-h-[calc(100vh-263.5px)]">

@@ -136,6 +136,13 @@ export const createLogRoom = async (data: {
 };
 
 /**
+ * 로그방 삭제 (방장만 가능)
+ */
+export const deleteLogRoom = async (publicId: string) => {
+  return api.delete(`/log-rooms/${publicId}`);
+};
+
+/**
  * 하루 로그 조회
  */
 export const getDayLog = async (publicId: string, date: string) => {
