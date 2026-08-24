@@ -12,7 +12,10 @@ interface PageLayoutProps {
 const PageLayout = ({ children, className, containerClassName }: PageLayoutProps) => {
 
   const location = useLocation();
-  const isCreateOrEditPage = location.pathname === '/log-rooms/new' || location.pathname === '/log-rooms/edit' || location.pathname === '/library/new' || location.pathname === '/library/edit';
+  const isCreateOrEditPage = location.pathname === '/log-rooms/new'
+    || location.pathname.startsWith('/log-rooms/edit')
+    || location.pathname === '/library/new'
+    || location.pathname.startsWith('/library/edit');
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-background-main text-base-50 font-sans overflow-hidden">
