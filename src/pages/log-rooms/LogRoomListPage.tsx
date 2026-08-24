@@ -117,11 +117,17 @@ const LogRoomListPage = () => {
               {/* Thumbnail */}
               <div className="relative aspect-video bg-base-900">
                 <div className="absolute inset-0 overflow-hidden">
-                  <img
-                    src={getImageUrl(room.backgroundImageUrl) || '/default-room.png'}
-                    alt={room.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
+                  {room.backgroundImageUrl ? (
+                    <img
+                      src={getImageUrl(room.backgroundImageUrl) || ''}
+                      alt={room.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-base-700 text-sm">
+                      아직 소식이 없습니다.
+                    </div>
+                  )}
                 </div>
 
                 {/* Overlapping participant avatars */}
