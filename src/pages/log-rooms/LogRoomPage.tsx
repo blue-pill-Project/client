@@ -102,7 +102,6 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
     const [roomName, setRoomName] = useState('');
     const [isAiTyping, setIsAiTyping] = useState(false);
     const [isInputLocked, setIsInputLocked] = useState(false);
-    const [inputValue, setInputValue] = useState('');
     const [replyPhotoId, setReplyPhotoId] = useState<string | null>(null);
     const [selectedDate, setSelectedDate] = useState(getLocalDateKey());
 
@@ -406,13 +405,12 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
         }
     };
 
-    const sendMessage = () => {
-        if (!publicId || !inputValue.trim() || isInputLocked || isAiTyping) return;
+    const sendMessage = (rawContent: string) => {
+        const content = rawContent.trim();
+        if (!publicId || !content || isInputLocked || isAiTyping) return;
 
-        const content = inputValue.trim();
         const quotedPhotoPublicId = replyPhotoId || undefined;
         const createdAt = new Date().toISOString();
-        setInputValue('');
         setReplyPhotoId(null);
 
         pendingChatsRef.current.push({ content, createdAt, photoPublicId: quotedPhotoPublicId });
@@ -581,8 +579,6 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
                         selectedDate={selectedDate}
                         isAiTyping={isAiTyping}
                         isInputDisabled={isInputLocked || isAiTyping}
-                        inputValue={inputValue}
-                        onInputChange={setInputValue}
                         onSendMessage={sendMessage}
                         replyPhotoId={replyPhotoId}
                         onReply={setReplyPhotoId}

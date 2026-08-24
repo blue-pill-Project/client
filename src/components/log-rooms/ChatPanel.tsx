@@ -23,9 +23,7 @@ interface ChatPanelProps {
   selectedDate: string;
   isAiTyping: boolean;
   isInputDisabled?: boolean;
-  inputValue: string;
-  onInputChange: (value: string) => void;
-  onSendMessage: () => void;
+  onSendMessage: (content: string) => void;
   replyPhotoId: string | null;
   onReply: (photoPublicId: string | null) => void;
   onJumpToLog: (date: string, timeSlot: number) => void;
@@ -183,8 +181,6 @@ export const ChatPanel = ({
   selectedDate,
   isAiTyping,
   isInputDisabled = false,
-  inputValue,
-  onInputChange,
   onSendMessage,
   replyPhotoId,
   onReply,
@@ -199,6 +195,11 @@ export const ChatPanel = ({
   const scrollRef = useRef<HTMLElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // 입력값을 부모(페이지 전체)가 아니라 여기 로컬에 둬서, 타이핑할 때마다 페이지 전체가
+  // 리렌더링되는 것을 막는다 — 한글 등 IME 조합 입력 중 리렌더링 타이밍이 어긋나면
+  // 마지막 글자가 중복 입력되는 문제가 있었음.
+  const [inputValue, setInputValue] = useState('');
+  const isComposingRef = useRef(false);
   const prevScrollHeightRef = useRef(0);
   const prevMessageCountRef = useRef(0);
   const prevScrollTopRef = useRef(0);
@@ -338,6 +339,13 @@ export const ChatPanel = ({
     onReply(photoPublicId);
     // 답장 선택 후 입력창에 포커스
     requestAnimationFrame(() => inputRef.current?.focus());
+  };
+
+  const handleSend = () => {
+    const content = inputValue.trim();
+    if (!content || isInputDisabled) return;
+    onSendMessage(content);
+    setInputValue('');
   };
 
   const renderMessageBubble = (msg: ChatMessage, options?: { showHeader?: boolean }) => {
@@ -492,8 +500,15 @@ export const ChatPanel = ({
             <input
               ref={inputRef}
               value={inputValue}
-              onChange={(e) => onInputChange(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !isInputDisabled && onSendMessage()}
+              onChange={(e) => setInputValue(e.target.value)}
+              onCompositionStart={() => { isComposingRef.current = true; }}
+              onCompositionEnd={() => { isComposingRef.current = false; }}
+              onKeyDown={(e) => {
+                if (e.key !== 'Enter' || isInputDisabled) return;
+                // 한글 등 IME 조합 확정용 Enter는 전송으로 처리하지 않는다
+                if (isComposingRef.current || e.nativeEvent.isComposing) return;
+                handleSend();
+              }}
               placeholder={
                 isInputDisabled
                   ? 'AI 답장 대기 중...'
@@ -505,7 +520,7 @@ export const ChatPanel = ({
               className="flex-1 bg-transparent text-white text-sm focus:outline-none placeholder:text-gray-500 disabled:cursor-not-allowed"
             />
             <button
-              onClick={onSendMessage}
+              onClick={handleSend}
               disabled={isInputDisabled}
               className="p-2 rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
