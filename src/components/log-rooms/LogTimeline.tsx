@@ -149,7 +149,7 @@ export const LogTimeline = ({
 
                 <div className="flex flex-col items-center">
                   <p className='text-center text-display-2 font-bold text-base-800 mb-1'>{selectedTimeSlot}:00</p>
-                  {isOwner && isCurrentSlot ? (
+                  {isOwner && isCurrentSlot && !sharedPostsForSlot.length ? (
                     <Button
                       onClick={() => onUpload(selectedTimeSlot)}
                       leftIcon={<PlusIcon />}
@@ -158,6 +158,8 @@ export const LogTimeline = ({
                     >
                       로그 업로드
                     </Button>
+                  ) : sharedPostsForSlot.length > 0 ? (
+                    <div className="text-base text-gray-600 font-medium text-center h-12">이미 공유된 시간대예요.</div>
                   ) : (
                     <div className="text-base text-gray-600 font-medium text-center h-12">아직 로그가 없습니다.</div>
                   )}

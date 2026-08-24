@@ -198,6 +198,13 @@ export const getPosts = async (params: { cursor?: string; size?: number } = {}) 
 };
 
 /**
+ * 공유된 게시물 삭제 (공유한 본인만 가능 — 원본 로그 사진은 삭제되지 않음)
+ */
+export const deletePost = async (publicId: string) => {
+  return api.delete(`/posts/${publicId}`);
+};
+
+/**
  * 로그 사진 업로드
  */
 export const uploadLogPhoto = async (

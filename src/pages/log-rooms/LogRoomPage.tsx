@@ -175,6 +175,19 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
         });
     }, [publicId]);
 
+    // 방의 공유된 게시물 목록을 새로 불러온다. 다른 탭/페이지(홈 피드)에서 게시물을 삭제/공유하면
+    // 이 페이지의 sharedPosts가 낡은 채로 남아 "이미 공유된 시간대예요"가 잘못 표시될 수 있어서,
+    // 날짜가 바뀌거나 탭에 다시 포커스가 올 때마다 재조회한다.
+    const fetchSharedPosts = useCallback(async () => {
+        if (!publicId) return;
+        try {
+            const postResponse = await logRoomApi.getLogRoomPosts(publicId);
+            setSharedPosts(postResponse.content);
+        } catch (e) {
+            console.error(getErrorMessage(e, '공유된 게시물을 불러오는 중 오류가 발생했습니다.'));
+        }
+    }, [publicId]);
+
     // 타임라인은 선택한 날짜가 바뀔 때마다 다시 조회
     useEffect(() => {
         if (!publicId) return;
@@ -187,8 +200,19 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
                 console.error(getErrorMessage(e, '타임라인을 불러오는 중 오류가 발생했습니다.'));
             }
         };
+        // fetchTimeline/fetchSharedPosts는 비동기 함수라 setState는 await 이후 콜백에서 실행되지만,
+        // react-hooks v7의 set-state-in-effect가 이를 정적으로 감지해 오탐 경고를 낸다.
+        /* eslint-disable react-hooks/set-state-in-effect */
         fetchTimeline();
-    }, [publicId, selectedDate]);
+        fetchSharedPosts();
+        /* eslint-enable react-hooks/set-state-in-effect */
+    }, [publicId, selectedDate, fetchSharedPosts]);
+
+    // 탭이 다시 포커스될 때(다른 탭/페이지에서 공유·삭제하고 돌아온 경우 등) 최신 상태로 갱신
+    useEffect(() => {
+        window.addEventListener('focus', fetchSharedPosts);
+        return () => window.removeEventListener('focus', fetchSharedPosts);
+    }, [fetchSharedPosts]);
 
     // 채팅/방 정보는 방 진입 시 한 번만 (날짜 변경으로 채팅 페이지네이션을 리셋하지 않음)
     useEffect(() => {
@@ -202,9 +226,6 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
                 );
                 setChatNextCursor(chatResponse.nextCursor);
                 setChatHasMore(chatResponse.hasMore);
-
-                const postResponse = await logRoomApi.getLogRoomPosts(publicId);
-                setSharedPosts(postResponse.content);
 
                 const roomListResponse = await logRoomApi.getMyLogRooms();
                 const room = roomListResponse.content.find(r => r.publicId === publicId);
@@ -276,6 +297,11 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
         const file = event.target.files?.[0];
         event.target.value = '';
         if (!file) return;
+
+        if (isSelectedSlotShared) {
+            alert('이미 공유된 시간대입니다. 더 이상 업로드할 수 없습니다.');
+            return;
+        }
 
         setPendingFile(file);
         setIsUploadModalOpen(true);
@@ -446,6 +472,12 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
     const handleShare = async () => {
         if (!publicId || isSharing) return;
 
+        const hasPhotoInSlot = (timelineData.find((slot) => slot.timeSlot === selectedTimeSlot)?.entries.length ?? 0) > 0;
+        if (!hasPhotoInSlot) {
+            alert('업로드된 사진이 없습니다.');
+            return;
+        }
+
         setIsSharing(true);
         try {
             const newPost = await logRoomApi.shareLog(publicId, {
@@ -513,6 +545,12 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
 
     const characterParticipant = participants.find(p => !p.isUser);
     const characterName = characterParticipant ? memberNames[characterParticipant.memberPublicId] : undefined;
+
+    // 공유는 조회 시점에 사진을 live join하므로, 이미 공유된 (날짜, 시간대)에 새 사진을 올리면
+    // 이미 공유된 게시물 내용이 뒤늦게 바뀌어 보이게 된다 — 그런 시간대는 업로드를 막는다.
+    const isSelectedSlotShared = sharedPosts.some(
+        (p) => p.postDate === selectedDate && p.timeSlot === selectedTimeSlot,
+    );
 
     return (
         <PageLayout

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Send } from 'lucide-react';
+import { Calendar, Clock, Trash2 } from 'lucide-react';
 import PageLayout from '../../components/layout/PageLayout';
 import PageHeader from '../../components/common/PageHeader';
 import Button from '../../components/common/Button';
@@ -75,6 +75,21 @@ const LogRoomPostListPage = () => {
       console.error(getErrorMessage(err, '게시물 목록을 가져오는 중 오류가 발생했습니다.'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 공유한 본인만 삭제 가능 (원본 로그 사진은 유지되고 공유만 취소됨)
+  const handleDeletePost = async (publicId: string) => {
+    if (!confirm('이 게시물을 삭제하시겠습니까? 공유가 취소되며 되돌릴 수 없습니다.')) return;
+
+    try {
+      await logRoomApi.deletePost(publicId);
+      setPosts((prev) => prev.filter((p) => p.publicId !== publicId));
+      setSelectedPost((prev) => (prev?.publicId === publicId ? null : prev));
+    } catch (err) {
+      const message = getErrorMessage(err, '게시물 삭제에 실패했습니다.');
+      console.error(message);
+      alert(message);
     }
   };
 
@@ -245,11 +260,23 @@ const LogRoomPostListPage = () => {
                           </span>
                         </div>
 
-                        {post.photos.length > 1 && (
-                          <div className="absolute top-3.5 right-3.5 text-white text-[11px] font-medium bg-black/45 backdrop-blur-sm px-2 py-0.5 rounded-full">
-                            +{post.photos.length - 1}
-                          </div>
-                        )}
+                        <div className="absolute top-3.5 right-3.5 flex items-center gap-2">
+                          {post.photos.length > 1 && (
+                            <div className="text-white text-[11px] font-medium bg-black/45 backdrop-blur-sm px-2 py-0.5 rounded-full">
+                              +{post.photos.length - 1}
+                            </div>
+                          )}
+                          {post.isMine && (
+                            <button
+                              type="button"
+                              aria-label="게시물 삭제"
+                              onClick={(e) => { e.stopPropagation(); handleDeletePost(post.publicId); }}
+                              className="p-1.5 rounded-full bg-black/45 backdrop-blur-sm text-white/80 hover:text-red-400 transition-colors cursor-pointer"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
 
                         <div className="absolute bottom-3.5 left-3.5 right-3.5 flex items-end justify-between gap-3">
                           <div className="min-w-0 flex items-baseline gap-2">
@@ -262,17 +289,6 @@ const LogRoomPostListPage = () => {
                               </p>
                             )}
                           </div>
-                          <button
-                            type="button"
-                            aria-label="게시물 보기"
-                            className="p-1.5 text-white/90 hover:text-white shrink-0 transition-colors cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedPost(post);
-                            }}
-                          >
-                            <Send size={16} className="rotate-[-15deg]" />
-                          </button>
                         </div>
                       </article>
                     );
@@ -298,7 +314,11 @@ const LogRoomPostListPage = () => {
         </div>
       )}
 
-      <PostDetailModal post={selectedPost} onClose={() => setSelectedPost(null)} />
+      <PostDetailModal
+        post={selectedPost}
+        onClose={() => setSelectedPost(null)}
+        onDelete={selectedPost ? () => handleDeletePost(selectedPost.publicId) : undefined}
+      />
     </PageLayout>
   );
 };

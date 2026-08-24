@@ -1,4 +1,4 @@
-import { Clock, X } from 'lucide-react';
+import { Clock, Trash2, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { SharedPost } from '../../lib/logRoomApi';
 import { getImageUrl, handleAvatarError } from '../../lib/utils';
@@ -6,9 +6,10 @@ import { getImageUrl, handleAvatarError } from '../../lib/utils';
 interface PostDetailModalProps {
   post: SharedPost | null;
   onClose: () => void;
+  onDelete?: () => void;
 }
 
-export const PostDetailModal = ({ post, onClose }: PostDetailModalProps) => {
+export const PostDetailModal = ({ post, onClose, onDelete }: PostDetailModalProps) => {
   if (!post) return null;
 
   return (
@@ -16,6 +17,15 @@ export const PostDetailModal = ({ post, onClose }: PostDetailModalProps) => {
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onClick={onClose} />
 
       <div className="relative w-full max-w-2xl max-h-[85vh] bg-base-950 border border-base-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+        {post.isMine && onDelete && (
+          <button
+            onClick={onDelete}
+            aria-label="게시물 삭제"
+            className="absolute top-5 right-16 z-10 p-1.5 rounded-full bg-base-900/80 text-base-400 hover:text-red-400 transition-colors cursor-pointer"
+          >
+            <Trash2 size={18} />
+          </button>
+        )}
         <button
           onClick={onClose}
           className="absolute top-5 right-5 z-10 p-1.5 rounded-full bg-base-900/80 text-base-400 hover:text-white transition-colors cursor-pointer"
