@@ -63,7 +63,13 @@ export const CharacterInfoModal: React.FC<CharacterInfoModalProps> = ({ characte
                 )}
 
                 <div className="flex flex-wrap gap-2">
-                    <Chip size='s' icon={<UserIcon />}>{character.creatorNickname}</Chip>
+                    <button
+                        type="button"
+                        onClick={() => { onClose(); navigate(`/users/${character.creatorPublicId}`); }}
+                        className="inline-flex h-5 cursor-pointer hover:opacity-80 transition-opacity"
+                    >
+                        <Chip size='s' icon={<UserIcon />}>{character.creatorNickname}</Chip>
+                    </button>
                     <Chip size='s' icon={<UseCountIcon />}>{character.useCount}회</Chip>
                 </div>
                 <hr className='my-4 border-base-700' />

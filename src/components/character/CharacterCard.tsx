@@ -64,7 +64,7 @@ const CharacterCardComponent: React.FC<CharacterCardProps> = ({ char, onClick, c
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); navigate(`/users/${char.creatorPublicId}`); }}
-          className="cursor-pointer hover:opacity-80 transition-opacity"
+          className="inline-flex h-5 cursor-pointer hover:opacity-80 transition-opacity"
         >
           <Chip variant='gray' size='s' icon={<UserIcon />}>{creatorNickname || char.creatorNickname}</Chip>
         </button>
