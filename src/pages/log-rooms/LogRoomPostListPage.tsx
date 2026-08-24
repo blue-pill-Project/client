@@ -144,7 +144,7 @@ const LogRoomPostListPage = () => {
         <div ref={calendarRef} className="relative">
           <button
             onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-            className="flex items-center gap-2 h-10 px-4 rounded-full bg-base-950 border border-base-800 text-base-300 hover:text-white transition-colors text-sm font-medium"
+            className="flex items-center gap-2 h-10 px-4 rounded-full bg-base-950 border border-base-800 text-base-300 hover:text-white transition-colors text-sm font-medium cursor-pointer"
           >
             <Calendar size={16} className="text-base-400" />
             {dateFilter ? formatDisplayDate(dateFilter) : '전체 날짜'}
@@ -265,7 +265,7 @@ const LogRoomPostListPage = () => {
                           <button
                             type="button"
                             aria-label="게시물 보기"
-                            className="p-1.5 text-white/90 hover:text-white shrink-0 transition-colors"
+                            className="p-1.5 text-white/90 hover:text-white shrink-0 transition-colors cursor-pointer"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedPost(post);

@@ -122,7 +122,7 @@ export const LogTimeline = ({
                 {/* Bottom Right: Share/Reply Button */}
                 <button
                   onClick={() => onReply(entry.photoPublicId)}
-                  className="absolute bottom-6 right-6 text-gray-200/90 hover:text-gray-200 hover:scale-110 transition-all drop-shadow-xl"
+                  className="absolute bottom-6 right-6 text-gray-200/90 hover:text-gray-200 hover:scale-110 transition-all drop-shadow-xl cursor-pointer"
                 >
                   <Send size={22} className="rotate-[-15deg] fill-white/5" />
                 </button>

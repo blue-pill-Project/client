@@ -13,12 +13,12 @@ export const PostDetailModal = ({ post, onClose }: PostDetailModalProps) => {
 
   return (
     <div className="fixed inset-0 z-200 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onClick={onClose} />
 
       <div className="relative w-full max-w-2xl max-h-[85vh] bg-base-950 border border-base-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden">
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 z-10 p-1.5 rounded-full bg-base-900/80 text-base-400 hover:text-white transition-colors"
+          className="absolute top-5 right-5 z-10 p-1.5 rounded-full bg-base-900/80 text-base-400 hover:text-white transition-colors cursor-pointer"
         >
           <X size={18} />
         </button>

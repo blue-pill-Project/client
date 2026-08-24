@@ -101,7 +101,7 @@ const SignupStep2View: React.FC = () => {
 
         <button
           onClick={() => setView('signup-success')}
-          className="text-left typo-body-4 text-base-500 hover:text-base-300 underline mb-8"
+          className="text-left typo-body-4 text-base-500 hover:text-base-300 underline mb-8 cursor-pointer"
         >
           나중에 정할게요.
         </button>

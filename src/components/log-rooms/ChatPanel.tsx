@@ -152,7 +152,7 @@ const ChatLogPhoto = ({
           e.stopPropagation();
           setMenuOpen((prev) => !prev);
         }}
-        className="hidden md:flex absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+        className="hidden md:flex absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity cursor-pointer"
       >
         <MoreVertical size={16} />
       </button>
@@ -162,7 +162,7 @@ const ChatLogPhoto = ({
           <button
             type="button"
             onClick={handleReply}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-100 hover:bg-gray-800 transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-100 hover:bg-gray-800 transition-colors cursor-pointer"
           >
             <Reply size={14} />
             답장
@@ -404,7 +404,7 @@ export const ChatPanel = ({
               <button
                 type="button"
                 onClick={requestLoadOlder}
-                className="text-[11px] text-gray-400 hover:text-primary transition-colors"
+                className="text-[11px] text-gray-400 hover:text-primary transition-colors cursor-pointer"
               >
                 이전 대화 더 보기
               </button>
@@ -424,7 +424,7 @@ export const ChatPanel = ({
           const dateDivider = isNewDay && (
             <div key={`divider-${dateKey}`} className="flex items-center justify-between bg-gray-900/60 rounded-xl px-4 py-2.5">
               <span className="text-xs text-gray-400 font-medium">{formatDateOnly(dateKey)}</span>
-              <button onClick={() => onJumpToLog(dateKey, itemTimeSlot)} className="text-xs text-primary font-semibold hover:text-primary/80 transition-colors">
+              <button onClick={() => onJumpToLog(dateKey, itemTimeSlot)} className="text-xs text-primary font-semibold hover:text-primary/80 transition-colors cursor-pointer">
                 로그 보기
               </button>
             </div>
@@ -483,7 +483,7 @@ export const ChatPanel = ({
               type="button"
               aria-label="답장 취소"
               onClick={() => onReply(null)}
-              className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+              className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-gray-800 transition-colors cursor-pointer"
             >
               <X size={16} />
             </button>
@@ -522,7 +522,7 @@ export const ChatPanel = ({
             <button
               onClick={handleSend}
               disabled={isInputDisabled}
-              className="p-2 rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send size={16} />
             </button>

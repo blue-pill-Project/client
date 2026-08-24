@@ -34,7 +34,7 @@ const CharacterSelectModal = ({
       <div className="bg-base-950 border border-base-800 rounded-3xl w-full max-w-4xl max-h-[80vh] flex flex-col overflow-hidden shadow-2xl">
         <div className="p-6 border-b border-base-900 flex items-center justify-between">
           <h2 className="text-header-3 font-bold text-base-50">캐릭터 선택</h2>
-          <button onClick={onClose} className="p-2 text-base-500 hover:text-white transition-colors">
+          <button onClick={onClose} className="p-2 text-base-500 hover:text-white transition-colors cursor-pointer">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
@@ -151,7 +151,7 @@ const LogRoomCreationPage = () => {
                     type="button"
                     onClick={() => setIsPublic(!isPublic)}
                     className={cn(
-                      "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
+                      "relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer",
                       isPublic ? "bg-primary" : "bg-base-800"
                     )}
                   >
@@ -177,7 +177,7 @@ const LogRoomCreationPage = () => {
                       type="button"
                       onClick={() => setParticipantCount(num)}
                       className={cn(
-                        "w-16 h-12 rounded-xl border flex items-center justify-center text-sm font-bold transition-all",
+                        "w-16 h-12 rounded-xl border flex items-center justify-center text-sm font-bold transition-all cursor-pointer",
                         participantCount === num
                           ? "border-primary text-primary bg-primary/5"
                           : "border-base-800 text-base-400 hover:border-base-600"
@@ -280,7 +280,7 @@ const LogRoomCreationPage = () => {
                   <div className="flex items-center gap-3">
                     <span className="text-base font-bold text-base-50">{selectedCharacter.name}</span>
                     <span className="text-[11px] px-2 py-0.5 bg-base-800 text-base-400 rounded">#{selectedCharacter.characterCode}</span>
-                    <button onClick={(e) => { e.stopPropagation(); setSelectedCharacterId(null); }} className="text-base-600 hover:text-red-400 transition-colors ml-1">
+                    <button onClick={(e) => { e.stopPropagation(); setSelectedCharacterId(null); }} className="text-base-600 hover:text-red-400 transition-colors ml-1 cursor-pointer">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
                   </div>

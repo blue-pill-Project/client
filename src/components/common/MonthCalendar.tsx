@@ -9,6 +9,8 @@ interface MonthCalendarProps {
   markedDates?: Iterable<string>;
   /** 보이는 월이 바뀔 때 (month는 0–11) */
   onVisibleMonthChange?: (year: number, month: number) => void;
+  /** 오늘보다 미래인 날짜는 선택할 수 없게 비활성화 */
+  disableFuture?: boolean;
   className?: string;
 }
 
@@ -25,6 +27,7 @@ export const MonthCalendar = ({
   onChange,
   markedDates,
   onVisibleMonthChange,
+  disableFuture,
   className,
 }: MonthCalendarProps) => {
   const selected = value ? new Date(`${value}T12:00:00`) : new Date();
@@ -80,7 +83,7 @@ export const MonthCalendar = ({
         <button
           type="button"
           onClick={goToPrevMonth}
-          className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-base-800 transition-colors"
+          className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-base-800 transition-colors cursor-pointer"
           aria-label="이전 달"
         >
           <ChevronLeft size={16} />
@@ -89,7 +92,7 @@ export const MonthCalendar = ({
         <button
           type="button"
           onClick={goToNextMonth}
-          className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-base-800 transition-colors"
+          className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-base-800 transition-colors cursor-pointer"
           aria-label="다음 달"
         >
           <ChevronRight size={16} />
@@ -107,19 +110,23 @@ export const MonthCalendar = ({
           const isSelected = cell.dateStr === value;
           const isToday = cell.dateStr === todayStr;
           const hasLog = markedSet.has(cell.dateStr);
+          const isFuture = disableFuture && cell.dateStr > todayStr;
           return (
             <button
               type="button"
               key={idx}
-              onClick={() => onChange(cell.dateStr)}
+              disabled={isFuture}
+              onClick={() => !isFuture && onChange(cell.dateStr)}
               className={cn(
                 'relative w-9 h-9 mx-auto flex flex-col items-center justify-center rounded-full text-xs font-medium transition-colors',
-                cell.isCurrentMonth ? 'text-gray-200' : 'text-gray-700',
-                isSelected
+                isFuture
+                  ? 'text-gray-800 cursor-not-allowed'
+                  : cn('cursor-pointer', cell.isCurrentMonth ? 'text-gray-200' : 'text-gray-700'),
+                !isFuture && (isSelected
                   ? 'bg-primary text-background-main font-bold'
                   : isToday
                     ? 'border border-primary/60 text-primary'
-                    : 'hover:bg-base-800'
+                    : 'hover:bg-base-800')
               )}
             >
               {cell.day}

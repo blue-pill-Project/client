@@ -47,6 +47,11 @@ export const LogRoomHeader = ({
   const calendarRef = useRef<HTMLDivElement>(null);
   const timeSlots = [6, 9, 12, 15, 18, 21, 24, 3];
 
+  // 현재 시각 기준, 미래 날짜/타임슬롯은 선택하지 못하게 막는다 (로컬 타임존 기준)
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const currentApiSlot = Math.floor(now.getHours() / 3) * 3;
+
   useEffect(() => {
     if (!isCalendarOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
@@ -65,7 +70,7 @@ export const LogRoomHeader = ({
         {/* Left: Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="p-2.5 rounded-full bg-background-main border border-gray-700 text-gray-400 hover:text-white transition-colors"
+          className="p-2.5 rounded-full bg-background-main border border-gray-700 text-gray-400 hover:text-white transition-colors cursor-pointer"
         >
           <ArrowLeft size={20} />
         </button>
@@ -93,19 +98,23 @@ export const LogRoomHeader = ({
               const apiSlot = slot === 24 ? 0 : slot;
               const isSelected = selectedTimeSlot === slot || selectedTimeSlot === apiSlot;
               const hasLog = (timelineData.find(t => t.timeSlot === apiSlot || t.timeSlot === slot)?.entries.length ?? 0) > 0;
+              const isFuture = selectedDate > todayStr || (selectedDate === todayStr && apiSlot > currentApiSlot);
               return (
                 <button
                   key={slot}
-                  onClick={() => onTimeSlotChange(apiSlot)}
-                  className="flex flex-col items-center gap-2 group"
+                  disabled={isFuture}
+                  onClick={() => !isFuture && onTimeSlotChange(apiSlot)}
+                  className={`flex flex-col items-center gap-2 group ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                 >
-                  <div className={`rounded-full transition-all ${isSelected
-                    ? 'w-3 h-3 bg-primary shadow-[0_0_0_4px_rgba(98,246,181,0.25),0_0_10px_rgba(98,246,181,0.6)]'
-                    : hasLog
-                      ? 'w-2 h-2 bg-primary/80'
-                      : 'w-2 h-2 bg-gray-700 group-hover:bg-gray-500'
+                  <div className={`rounded-full transition-all ${isFuture
+                    ? 'w-2 h-2 bg-gray-800'
+                    : isSelected
+                      ? 'w-3 h-3 bg-primary shadow-[0_0_0_4px_rgba(98,246,181,0.25),0_0_10px_rgba(98,246,181,0.6)]'
+                      : hasLog
+                        ? 'w-2 h-2 bg-primary/80'
+                        : 'w-2 h-2 bg-gray-700 group-hover:bg-gray-500'
                     }`} />
-                  <span className={`text-[11px] font-medium transition-colors ${isSelected ? 'text-white' : hasLog ? 'text-gray-300' : 'text-gray-600'
+                  <span className={`text-[11px] font-medium transition-colors ${isFuture ? 'text-gray-800' : isSelected ? 'text-white' : hasLog ? 'text-gray-300' : 'text-gray-600'
                     }`}>
                     {slot.toString().padStart(2, '0')}
                   </span>
@@ -120,7 +129,7 @@ export const LogRoomHeader = ({
           <div ref={calendarRef} className="relative">
             <button
               onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-              className="p-2.5 rounded-full bg-background-main border border-gray-700 text-gray-400 hover:text-white transition-colors"
+              className="p-2.5 rounded-full bg-background-main border border-gray-700 text-gray-400 hover:text-white transition-colors cursor-pointer"
             >
               <Calendar size={20} />
             </button>
@@ -131,6 +140,7 @@ export const LogRoomHeader = ({
                   onChange={(date) => { onDateChange(date); setIsCalendarOpen(false); }}
                   markedDates={markedDates}
                   onVisibleMonthChange={onCalendarMonthChange}
+                  disableFuture
                 />
               </div>
             )}
@@ -139,7 +149,7 @@ export const LogRoomHeader = ({
           <button
             onClick={onShare}
             disabled={isSharing}
-            className="p-2.5 rounded-full bg-background-main border border-gray-700 text-gray-400 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2.5 rounded-full bg-background-main border border-gray-700 text-gray-400 hover:text-white transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Share2 size={20} />
           </button>
@@ -148,7 +158,7 @@ export const LogRoomHeader = ({
             <button
               onClick={onDelete}
               disabled={isDeleting}
-              className="p-2.5 rounded-full bg-background-main border border-gray-700 text-gray-400 hover:text-red-400 hover:border-red-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2.5 rounded-full bg-background-main border border-gray-700 text-gray-400 hover:text-red-400 hover:border-red-900 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Trash2 size={20} />
             </button>
@@ -157,7 +167,7 @@ export const LogRoomHeader = ({
 
         <button
           onClick={onToggleChat}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-full border border-gray-700 bg-background-main transition-colors ${isChatOpen ? 'text-white' : 'text-gray-400 hover:text-white'
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-full border border-gray-700 bg-background-main transition-colors cursor-pointer ${isChatOpen ? 'text-white' : 'text-gray-400 hover:text-white'
             }`}
         >
           <MessageCircleMore size={18} />

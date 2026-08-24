@@ -262,7 +262,7 @@ const CharacterEditPage = () => {
                           </div>
 
                           <div className="flex items-end gap-4">
-                            <button onClick={() => handleEditExample(index)}><EditIcon /></button>
+                            <button className="cursor-pointer" onClick={() => handleEditExample(index)}><EditIcon /></button>
                             <button
                               className="text-base-600 cursor-pointer"
                               onClick={() => handleRemoveExample(index)}
