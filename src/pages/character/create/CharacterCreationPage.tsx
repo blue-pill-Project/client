@@ -77,6 +77,11 @@ const CharacterCreationPage = () => {
   };
 
   const handleSubmit = async () => {
+    if (!selectedFile) {
+      alert("캐릭터 이미지를 등록해주세요.");
+      setCurrentStep('setting');
+      return;
+    }
     if (!formData.name || !formData.description || !formData.prompt) {
       alert("필수 항목을 모두 입력해주세요.");
       return;
@@ -84,14 +89,7 @@ const CharacterCreationPage = () => {
 
     setLoading(true);
     try {
-      let finalImageUrl = formData.imageUrl;
-
-      // 이미지가 선택된 경우 R2 업로드
-      if (selectedFile) {
-        finalImageUrl = await uploadToR2(selectedFile, 'CHARACTER');
-      } else if (!finalImageUrl || finalImageUrl.startsWith('data:image')) {
-        finalImageUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${formData.name + Date.now()}`;
-      }
+      const finalImageUrl = await uploadToR2(selectedFile, 'CHARACTER');
 
       await createCharacterCard({
         ...formData,
@@ -223,9 +221,8 @@ const CharacterCreationPage = () => {
                   <ul className="space-y-6 h-64 overflow-y-auto pr-2">
                     {formData.exampleDialogues.map((dialogue, index) => (
                       <li key={index} className="flex gap-3 items-start group">
-                        {/* 캐릭터 프로필 사진 (임시 URL, 교체 필요) */}
                         <img
-                          src={imagePreview || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}
+                          src={imagePreview || '/default-profile.svg'}
                           alt="profile"
                           className="w-10 h-10 rounded-lg object-cover bg-base-700"
                         />

@@ -217,7 +217,7 @@ const CharacterEditPage = () => {
                   <ul className="space-y-6 min-h-80 overflow-y-auto pr-2">
                     {formData.exampleDialogues.map((dialogue, index) => (
                       <li key={index} className="flex gap-3 items-start group">
-                        <img src={imagePreview || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'} alt="profile" className="w-10 h-10 rounded-lg bg-base-700" />
+                        <img src={imagePreview || '/default-profile.svg'} alt="profile" className="w-10 h-10 rounded-lg bg-base-700" />
                         <div className='flex gap-5'>
                           <div className="flex flex-col">
                             <div className="mb-1 text-body-3 font-medium text-base-400">{formData.name}</div>
