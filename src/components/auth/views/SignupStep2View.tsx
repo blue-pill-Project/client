@@ -62,6 +62,25 @@ const SignupStep2View: React.FC = () => {
     }
   };
 
+  // 닉네임을 비워둔 채 건너뛰면 서버가 랜덤 닉네임을 자동 부여한다.
+  // 이 호출 없이 넘어가면 nickname이 계속 null로 남아 다음 로그인마다
+  // isNewUser가 true로 판정되어 회원가입 모달이 매번 다시 뜨게 된다.
+  const handleSkip = async () => {
+    setIsLoading(true);
+    try {
+      await updateProfile({ nickname: '', profileImageUrl: null });
+      const updatedUser = await getMyProfile();
+      setAuthenticated(true, updatedUser);
+      setView('signup-success');
+    } catch (error) {
+      const message = getErrorMessage(error, '건너뛰기에 실패했습니다. 다시 시도해주세요.');
+      console.error(message);
+      alert(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col max-w-120 w-full mx-auto">
       {/* 제목 */}
@@ -100,8 +119,9 @@ const SignupStep2View: React.FC = () => {
         </div>
 
         <button
-          onClick={() => setView('signup-success')}
-          className="text-left typo-body-4 text-base-500 hover:text-base-300 underline mb-8 cursor-pointer"
+          onClick={handleSkip}
+          disabled={isLoading}
+          className="text-left typo-body-4 text-base-500 hover:text-base-300 underline mb-8 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           나중에 정할게요.
         </button>

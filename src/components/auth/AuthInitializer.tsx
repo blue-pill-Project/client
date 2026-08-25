@@ -11,6 +11,14 @@ const AuthInitializer: React.FC = () => {
   const { setAuthenticated, setInitialized, logout, openModal } = useAuthStore();
 
   useEffect(() => {
+    // /auth/callback은 CallbackPage가 동일한 세션 복구 로직을 전담한다.
+    // 여기서도 함께 실행하면 두 요청이 동시에 경쟁하다가 한쪽이 실패할 경우
+    // signup-step1 모달이 로그인 모달로 덮어써지는 문제가 있었다.
+    if (window.location.pathname === '/auth/callback') {
+      setInitialized(true);
+      return;
+    }
+
     const checkSession = async () => {
       try {
         // 새로고침 시 토큰 재발급 시도 (성공하면 로그인 유지)
