@@ -61,8 +61,8 @@ export const getDevToken = async (userId?: number) => {
 /**
  * 회원 탈퇴
  */
-export const withdrawUser = async (data?: { deleteReason?: string }) => {
-  return api.delete('/user/me', { data });
+export const withdrawUser = async (deletedReason?: string) => {
+  return api.delete('/users/me', { data: { deletedReason } });
 };
 
 /**

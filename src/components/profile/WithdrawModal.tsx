@@ -26,7 +26,7 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose }) => {
 
     setIsLoading(true);
     try {
-      await withdrawUser(deleteReason.trim() ? { deleteReason: deleteReason.trim() } : undefined);
+      await withdrawUser(deleteReason.trim() || undefined);
       logout();
       onClose();
       navigate('/', { replace: true });
