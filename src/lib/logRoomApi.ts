@@ -36,6 +36,7 @@ export interface DayLogEntry {
   authorType: 'USER' | 'CHARACTER';
   authorName: string;
   authorImageUrl: string | null;
+  createdAt: string;
 }
 
 export interface DayLogTimeSlot {
@@ -73,6 +74,7 @@ export interface SharedPostPhoto {
   authorType: 'USER' | 'CHARACTER';
   authorName: string;
   authorImageUrl: string | null;
+  createdAt: string;
 }
 
 export interface SharedPost {

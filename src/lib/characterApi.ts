@@ -100,6 +100,17 @@ export const updateCharacterVisibility = async (publicId: string, isPublic: bool
 };
 
 /**
+ * 캐릭터 프롬프트 자동완성
+ */
+export const autoCompleteCharacterPrompt = async (data: {
+  name: string;
+  intro: string;
+  prompt?: string;
+}) => {
+  return api.post<{ prompt: string }>('/character-cards/prompt/autocomplete', data);
+};
+
+/**
  * 특정 유저가 생성한 캐릭터 카드 목록 조회
  */
 export const getUserCharacterCards = async (

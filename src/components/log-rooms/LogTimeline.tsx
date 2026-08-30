@@ -59,8 +59,8 @@ export const LogTimeline = ({
   }
 
   return (
-    <section className="flex-1 overflow-y-auto px-10 py-6 hide-scrollbar">
-      <div className="flex flex-col items-center gap-5 max-w-4xl mx-auto">
+    <section className="flex-1 overflow-y-auto px-4 lg:px-8 py-6 hide-scrollbar">
+      <div className="flex flex-col items-center gap-5 max-w-4xl">
         {participants.map((participant) => {
           const entry = uniqueEntries.find(e => e.memberPublicId === participant.memberPublicId);
           const isOwner = participant.isOwner;

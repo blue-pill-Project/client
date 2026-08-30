@@ -60,7 +60,7 @@ const CharacterCardComponent: React.FC<CharacterCardProps> = ({ char, onClick, c
       </div>
       <div>
         <h3 className="text-body-2 font-semibold text-base-300">{char.name} <Chip variant='gray' size='s'>#{char.characterCode}</Chip></h3>
-        <div className="text-body-4 my-1 text-base-500 line-clamp-2">{char.description}</div>
+        <div className="text-body-4 my-1 text-base-500 line-clamp-2 truncate">{char.description}</div>
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); navigate(`/users/${char.creatorPublicId}`); }}
@@ -71,7 +71,7 @@ const CharacterCardComponent: React.FC<CharacterCardProps> = ({ char, onClick, c
       </div>
       {isOwner && (
         <button
-          className="absolute cursor-pointer bottom-2 right-2 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors"
+          className="absolute cursor-pointer bottom-0 right-0 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors"
           onClick={handleMenuClick}
         >
           <MoreIcon className="size-5" />

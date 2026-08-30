@@ -7,7 +7,6 @@ import { getImageUrl, handleAvatarError } from '../../lib/utils';
 interface LogEntryItem extends DayLogEntry {
   dateKey: string;
   timeSlot: number;
-  createdAt: string;
 }
 
 interface ChatItem {
@@ -72,7 +71,6 @@ const toLogEntryItems = (dateKey: string, slots: DayLogTimeSlot[]): LogEntryItem
       ...entry,
       dateKey,
       timeSlot: slot.timeSlot,
-      createdAt: `${dateKey}T${slot.timeSlot.toString().padStart(2, '0')}:00:00`,
     }))
   );
 
@@ -393,7 +391,7 @@ export const ChatPanel = ({
     <section
       ref={scrollRef}
       onScroll={handleScroll}
-      className="max-h-[calc(100vh-263.5px)] w-full md:w-[25vw] flex flex-col overflow-y-auto hide-scrollbar"
+      className="max-h-[calc(100vh-263.5px)] w-full lg:w-[25vw] flex flex-col overflow-y-auto hide-scrollbar"
     >
       <div className="p-4 space-y-3 flex-1 mb-11">
         {(isLoadingOlder || hasMore) && (

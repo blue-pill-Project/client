@@ -12,10 +12,16 @@ let isReissuing = false;
 
 /**
  * 전역 로그아웃 및 로그인 유도
+ * 장기간 방치 등으로 세션(리프레시 토큰)이 만료된 경우, 보호된 페이지에
+ * 그대로 남아 API 에러 메시지("존재하지 않는 유저입니다" 등)만 노출되는 대신
+ * 홈으로 이동시킨다.
  */
 const handleAuthFailure = () => {
   useAuthStore.getState().logout();
   useAuthStore.getState().openModal('login');
+  if (window.location.pathname !== '/') {
+    window.location.replace('/');
+  }
 };
 
 /**

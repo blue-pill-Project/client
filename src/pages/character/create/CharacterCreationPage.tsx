@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageLayout from '../../../components/layout/PageLayout';
 import Button from '../../../components/common/Button';
-import { createCharacterCard } from '../../../lib/characterApi';
+import { autoCompleteCharacterPrompt, createCharacterCard } from '../../../lib/characterApi';
 import { cn, getErrorMessage } from '../../../lib/utils';
 import { useR2Upload } from '../../../hooks/useR2Upload';
 import Tabs from '../../../components/common/Tabs';
@@ -32,6 +32,7 @@ const CharacterCreationPage = () => {
   const { uploadToR2 } = useR2Upload();
 
   const [exampleInput, setExampleInput] = useState('');
+  const [isAutoCompleting, setIsAutoCompleting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -74,6 +75,28 @@ const CharacterCreationPage = () => {
       ...prev,
       exampleDialogues: prev.exampleDialogues.filter((_, i) => i !== index)
     }));
+  };
+
+  const handleAutoCompletePrompt = async () => {
+    if (!formData.name || !formData.description) {
+      alert('자동완성을 사용하려면 캐릭터 이름과 한 줄 소개를 먼저 입력해주세요.');
+      setCurrentStep('setting');
+      return;
+    }
+
+    setIsAutoCompleting(true);
+    try {
+      const { prompt } = await autoCompleteCharacterPrompt({
+        name: formData.name,
+        intro: formData.description,
+        prompt: formData.prompt,
+      });
+      setFormData((prev) => ({ ...prev, prompt }));
+    } catch (err) {
+      alert(`자동완성 실패: ${getErrorMessage(err, '알 수 없는 오류')}`);
+    } finally {
+      setIsAutoCompleting(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -201,7 +224,16 @@ const CharacterCreationPage = () => {
                       className="w-full h-102 bg-background-main border border-base-700 rounded-xl p-3 text-[14px] text-base-200 focus:border-primary outline-none transition-colors"
                       placeholder="캐릭터의 성격, 말투, 배경 등을 자세히 입력해주세요."
                     />
-                    <div className='w-full text-right'><Button variant='Darkoutline' className='mt-4' >자동 완성</Button></div>
+                    <div className='w-full text-right'>
+                      <Button
+                        variant='Darkoutline'
+                        className='mt-4'
+                        onClick={handleAutoCompletePrompt}
+                        disabled={isAutoCompleting}
+                      >
+                        {isAutoCompleting ? '자동완성 중...' : '자동 완성'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
