@@ -1,3 +1,7 @@
+/**
+ * 공통 텍스트 입력 필드.
+ * 라벨·에러·헬퍼 텍스트·글자 수 카운터를 지원한다.
+ */
 import React from 'react';
 import { cn } from '../../lib/utils';
 
@@ -8,6 +12,9 @@ interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   maxLength?: number;
 }
 
+/**
+ * 라벨·검증 메시지를 포함한 단일 라인 입력 컴포넌트.
+ */
 const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(
   ({ label, error, helperText, className, maxLength, value, onChange, ...props }, ref) => {
     return (

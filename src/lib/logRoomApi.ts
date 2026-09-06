@@ -1,5 +1,9 @@
+/**
+ * 로그방·하루 로그·채팅·공유 게시물·로그 사진 관련 API.
+ */
 import { api } from './api';
 
+/** 로그방 참가자(유저/캐릭터) 요약 */
 export interface LogRoomParticipant {
   memberPublicId: string;
   name: string;
@@ -8,6 +12,7 @@ export interface LogRoomParticipant {
   isOwner: boolean;
 }
 
+/** 로그방 목록 한 행 */
 export interface LogRoomListItem {
   publicId: string;
   name: string;
@@ -21,6 +26,7 @@ export interface LogRoomListItem {
   participants: LogRoomParticipant[];
 }
 
+/** 로그방 커서 페이지네이션 목록 응답 */
 export interface LogRoomListResponse {
   content: LogRoomListItem[];
   nextCursor: string | null;
@@ -28,6 +34,7 @@ export interface LogRoomListResponse {
   total: number;
 }
 
+/** 하루 로그의 사진/캡션 한 건 */
 export interface DayLogEntry {
   memberPublicId: string;
   photoPublicId: string;
@@ -39,11 +46,13 @@ export interface DayLogEntry {
   createdAt: string;
 }
 
+/** 시간대(타임슬롯)별 하루 로그 묶음 */
 export interface DayLogTimeSlot {
   timeSlot: number;
   entries: DayLogEntry[];
 }
 
+/** 로그방에 참여 중인 캐릭터 카드 정보 */
 export interface LogCharacterCard {
   memberPublicId: string;
   characterPublicId: string;
@@ -58,6 +67,7 @@ export interface LogCharacterCard {
   canUpdate: boolean;
 }
 
+/** 채팅 메시지 한 건 */
 export interface ChatMessage {
   isMe: boolean;
   content: string;
@@ -66,6 +76,7 @@ export interface ChatMessage {
   quotedPhotoPublicId?: string | null;
 }
 
+/** 공유 게시물에 포함된 사진 */
 export interface SharedPostPhoto {
   memberPublicId: string;
   photoPublicId: string;
@@ -77,6 +88,7 @@ export interface SharedPostPhoto {
   createdAt: string;
 }
 
+/** 피드에 공유된 로그 게시물 */
 export interface SharedPost {
   publicId: string;
   roomPublicId: string;
@@ -94,6 +106,7 @@ export interface SharedPost {
   photos: SharedPostPhoto[];
 }
 
+/** 공유 게시물 커서 페이지네이션 목록 응답 */
 export interface SharedPostListResponse {
   content: SharedPost[];
   nextCursor: string | null;
@@ -101,6 +114,7 @@ export interface SharedPostListResponse {
   total: number;
 }
 
+/** 로그 게시물 공유 API 응답 */
 export interface PostShareResponse {
   publicId: string;
   logRoomPublicId: string;

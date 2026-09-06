@@ -1,7 +1,12 @@
+/**
+ * 공통 이미지 업로드 UI.
+ * 미리보기 박스와 파일 선택(또는 추가 액션 버튼)을 제공한다.
+ */
 import React, { useRef, useImperativeHandle, forwardRef } from 'react';
 import Button from './Button';
 import { cn } from '../../lib/utils';
 
+/** 부모에서 숨은 file input 클릭을 트리거할 때 쓰는 핸들 */
 export interface ImageUploadHandle {
     triggerUpload: () => void;
 }
@@ -19,6 +24,10 @@ interface ImageUploadProps {
     boxSize?: 's' | 'm' | 'l';
 }
 
+/**
+ * 이미지 선택·미리보기 컴포넌트.
+ * ref.triggerUpload()로 파일 선택을 외부에서 열 수 있다.
+ */
 export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(({
     imagePreview,
     onFileChange,
@@ -32,6 +41,7 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(({
         triggerUpload: () => fileInputRef.current?.click(),
     }));
 
+    /** 선택된 첫 파일을 부모 onFileChange로 전달한다 */
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -96,4 +106,3 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(({
         </div>
     );
 });
-

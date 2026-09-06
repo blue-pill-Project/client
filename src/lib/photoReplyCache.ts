@@ -1,10 +1,18 @@
+/**
+ * 사진 답장(quotedPhotoPublicId)을 sessionStorage에 보관해 새로고침 후에도 메시지에 다시 붙인다.
+ */
 import type { ChatMessage } from './logRoomApi';
 
+/** 방별 사진 답장 맵의 sessionStorage 키 */
 const storageKey = (roomId: string) => `bluepill:photo-replies:${roomId}`;
 
+/**
+ * 메시지를 캐시 키로 식별한다 (시각·발신자·내용 조합).
+ */
 export const messageReplyKey = (m: Pick<ChatMessage, 'content' | 'createdAt' | 'isMe'>) =>
   `${m.createdAt}|${m.isMe ? '1' : '0'}|${m.content}`;
 
+/** 방의 메시지키→사진ID 맵을 sessionStorage에서 읽는다 */
 const loadMap = (roomId: string): Record<string, string> => {
   try {
     const raw = sessionStorage.getItem(storageKey(roomId));
@@ -14,6 +22,7 @@ const loadMap = (roomId: string): Record<string, string> => {
   }
 };
 
+/** 방의 메시지키→사진ID 맵을 sessionStorage에 저장한다 */
 const saveMap = (roomId: string, map: Record<string, string>) => {
   sessionStorage.setItem(storageKey(roomId), JSON.stringify(map));
 };

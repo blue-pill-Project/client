@@ -1,14 +1,22 @@
+/**
+ * 로딩·에러 상태를 포함한 변경성(API) 요청용 React 훅.
+ */
 import { useState, useCallback } from 'react';
 import { api } from '../lib/api';
 
+/** 지원하는 변경성 HTTP 메서드 */
 type ApiMethod = 'post' | 'put' | 'patch' | 'delete';
 
+/** useApi 내부 data/loading/error 상태 */
 interface UseApiState<T> {
   data: T | null;
   loading: boolean;
   error: Error | null;
 }
 
+/**
+ * post/put/patch/delete 헬퍼와 요청 상태를 반환한다.
+ */
 export function useApi<T = unknown>() {
   const [state, setState] = useState<UseApiState<T>>({
     data: null,
@@ -16,6 +24,7 @@ export function useApi<T = unknown>() {
     error: null,
   });
 
+  /** 지정 메서드로 API를 호출하고 상태를 갱신한다 */
   const request = useCallback(
     async (method: ApiMethod, endpoint: string, payload?: unknown) => {
       setState((prev) => ({ ...prev, loading: true, error: null }));

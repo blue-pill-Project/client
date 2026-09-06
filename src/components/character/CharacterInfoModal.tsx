@@ -1,3 +1,6 @@
+/**
+ * 캐릭터 상세 정보 모달 — 설명·프롬프트·로그방 생성 진입을 담당한다.
+ */
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Chip from "../common/Chip";
@@ -15,6 +18,9 @@ interface CharacterInfoModalProps {
     onClose: () => void;
 }
 
+/**
+ * 캐릭터 이미지·설명·작성자 정보를 보여 주고, 소유자 프로필에서는 프롬프트·대사 예시도 노출한다.
+ */
 export const CharacterInfoModal: React.FC<CharacterInfoModalProps> = ({ character, onClose }) => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -40,7 +46,7 @@ export const CharacterInfoModal: React.FC<CharacterInfoModalProps> = ({ characte
                     </div>
                 </div>
 
-                {/* Owner-only or Profile Page details */}
+                {/* 소유자가 프로필 페이지에서 볼 때만 프롬프트·대사 예시 노출 */}
                 {showDetails && (
                     <div className="mb-6">
                         <div className='mb-4'>

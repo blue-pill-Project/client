@@ -1,3 +1,6 @@
+/**
+ * 앱 최초 로드 시 쿠키 기반 세션 복구를 담당하는 모듈.
+ */
 import React, { useEffect } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { reissueToken, getMyProfile } from '../../lib/authApi';
@@ -5,7 +8,7 @@ import { setAccessToken } from '../../lib/token';
 import { getErrorMessage } from '../../lib/utils';
 
 /**
- * 앱이 처음 로드될 때 쿠키를 이용해 세션을 복구하는 컴포넌트
+ * 토큰 재발급·프로필 조회로 로그인 상태를 복원하고, UI는 렌더링하지 않는다.
  */
 const AuthInitializer: React.FC = () => {
   const { setAuthenticated, setInitialized, logout, openModal } = useAuthStore();
@@ -19,6 +22,7 @@ const AuthInitializer: React.FC = () => {
       return;
     }
 
+    /** 리프레시 토큰으로 액세스 토큰을 재발급하고 유저 정보를 스토어에 반영한다. */
     const checkSession = async () => {
       try {
         // 새로고침 시 토큰 재발급 시도 (성공하면 로그인 유지)

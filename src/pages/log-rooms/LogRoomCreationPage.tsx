@@ -9,7 +9,10 @@ import { cn, getErrorMessage, getImageUrl, handleAvatarError } from '../../lib/u
 import SearchBar from '../../components/common/SearchBar';
 import PageHeader from '../../components/common/PageHeader';
 
-// --- Character Selection Modal Component ---
+/**
+ * 로그방 생성 시 참여 캐릭터를 고르는 모달.
+ * 라이브러리 캐릭터를 검색·그리드로 선택한다.
+ */
 const CharacterSelectModal = ({
   isOpen,
   onClose,
@@ -22,6 +25,7 @@ const CharacterSelectModal = ({
   const { characters, loading } = useCharacterLibrary(40);
   const [search, setSearch] = useState('');
 
+  // 이름 키워드로 캐릭터 필터
   const filtered = useMemo(() =>
     characters.filter(c => c.name.toLowerCase().includes(search.toLowerCase())),
     [characters, search]
@@ -73,6 +77,10 @@ const CharacterSelectModal = ({
   );
 };
 
+/**
+ * 로그방 생성 페이지.
+ * 방 이름·공개 여부·관계·캐릭터를 설정하고 노드 UI로 미리본 뒤 생성한다.
+ */
 const LogRoomCreationPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -93,6 +101,7 @@ const LogRoomCreationPage = () => {
     [characters, selectedCharacterId]
   );
 
+  /** 입력값 검증 후 로그방 생성 API 호출·상세로 이동 */
   const handleSubmit = async () => {
     if (!name || !selectedCharacterId) return;
     setIsSubmitting(true);
@@ -117,7 +126,7 @@ const LogRoomCreationPage = () => {
     <PageLayout containerClassName="max-w-full md:px-0 md:py-0 h-screen overflow-hidden" className='py-0'>
 
       <div className='flex w-full'>
-        {/* Left Sidebar - Form */}
+        {/* 좌측 사이드바: 생성 폼 */}
         <div className="w-100 shrink-0 border-r border-base-900 bg-background-main flex flex-col h-full overflow-y-auto custom-scrollbar">
 
           <PageHeader title='로그방 생성' category='Vlog' className='px-10' />
@@ -208,10 +217,10 @@ const LogRoomCreationPage = () => {
           </div>
         </div>
 
-        {/* Right Canvas - Node UI */}
+        {/* 우측 캔버스: 관계 노드 UI */}
         <div className="flex-1 bg-[#111214] relative overflow-hidden flex items-center justify-center">
 
-          {/* Connection Lines & Dots */}
+          {/* 연결선·점 */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl flex items-center justify-between px-10 pointer-events-none">
             <div className="h-0.5 bg-primary w-full origin-left transform scale-x-100 transition-transform duration-1000"></div>
           </div>
@@ -222,10 +231,10 @@ const LogRoomCreationPage = () => {
             <div className="w-4 h-4 rounded-full border-[3px] border-primary bg-background-main shadow-[0_0_15px_rgba(98,246,181,0.5)] z-10"></div>
           </div>
 
-          {/* Nodes Container */}
+          {/* 노드 컨테이너 */}
           <div className="relative z-20 flex items-center gap-12 w-full max-w-4xl justify-center">
 
-            {/* User Node (Me) */}
+            {/* 유저(나) 노드 */}
             <div className="flex flex-col items-center gap-4">
               <div className="w-45 h-45 rounded-2xl border border-base-800 bg-[#1A1B1E] flex flex-col items-center justify-center shadow-2xl relative overflow-hidden group">
                 {user?.profileImageUrl ? (
@@ -248,7 +257,7 @@ const LogRoomCreationPage = () => {
               </div>
             </div>
 
-            {/* Relationship Node */}
+            {/* 관계 설정 노드 */}
             <div className="w-70 -mt-10">
               <div className="rounded-2xl border-2 border-primary bg-[#1A1B1E] p-6 shadow-[0_0_30px_rgba(98,246,181,0.1)] relative">
                 <label className="block text-[12px] font-bold text-base-50 mb-3">관계 설정</label>
@@ -266,10 +275,10 @@ const LogRoomCreationPage = () => {
               </div>
             </div>
 
-            {/* Character Node */}
+            {/* 캐릭터 노드 */}
             <div className="flex flex-col items-center gap-4">
               {selectedCharacter ? (
-                // Selected State
+                // 선택됨
                 <>
                   <div className="w-45 h-45 rounded-2xl border-2 border-primary overflow-hidden shadow-[0_0_30px_rgba(98,246,181,0.15)] relative group cursor-pointer" onClick={() => setIsModalOpen(true)}>
                     <img src={getImageUrl(selectedCharacter.imageUrl) || ''} alt={selectedCharacter.name} className="w-full h-full object-cover" />
@@ -286,7 +295,7 @@ const LogRoomCreationPage = () => {
                   </div>
                 </>
               ) : (
-                // Empty State
+                // 미선택
                 <div
                   className="w-45 h-45 rounded-2xl border border-base-800 bg-[#1A1B1E] hover:border-primary/50 transition-colors flex flex-col items-center justify-center shadow-2xl cursor-pointer group"
                   onClick={() => setIsModalOpen(true)}

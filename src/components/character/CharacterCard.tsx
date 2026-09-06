@@ -1,3 +1,6 @@
+/**
+ * 캐릭터 카드 목록 아이템 UI와 소유자용 수정/삭제 메뉴를 제공하는 모듈.
+ */
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { R2_DOMAIN } from '../../lib/config';
@@ -20,18 +23,23 @@ interface CharacterCardProps {
   onDelete?: () => void;
 }
 
+/** R2 키 또는 절대 URL을 표시용 이미지 URL로 변환한다. */
 const getImageUrl = (key: string | null) => {
   if (!key) return null;
   if (key.startsWith('http')) return key;
   return `${R2_DOMAIN}/${key}`;
 };
 
+/**
+ * 캐릭터 썸네일·이름·설명·작성자를 보여 주고, 소유자에게는 수정/삭제 메뉴를 제공한다.
+ */
 const CharacterCardComponent: React.FC<CharacterCardProps> = ({ char, onClick, className, creatorNickname, isOwner, onEdit, onDelete }) => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    /** 메뉴 바깥 클릭 시 소유자 액션 메뉴를 닫는다. */
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
@@ -47,6 +55,7 @@ const CharacterCardComponent: React.FC<CharacterCardProps> = ({ char, onClick, c
     };
   }, [isMenuOpen]);
 
+  /** 카드 클릭과 분리해 소유자 더보기 메뉴를 토글한다. */
   const handleMenuClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsMenuOpen(!isMenuOpen);

@@ -1,3 +1,6 @@
+/**
+ * 인스타그램 포스트 형태의 캐릭터 피드 카드 UI.
+ */
 import { useState } from 'react';
 import CharacterProfileItem from './CharacterProfileItem';
 import { cn } from '../../lib/utils';
@@ -15,6 +18,9 @@ interface InstagramPostCardProps {
   className?: string;
 }
 
+/**
+ * 프로필 헤더·포스트 이미지·날짜·캡션(긴 글 More 펼치기)을 구성한 피드 카드.
+ */
 const InstagramPostCard = ({
   user,
   postImageUrl,

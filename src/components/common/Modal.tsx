@@ -1,3 +1,7 @@
+/**
+ * 공통 모달 셸.
+ * 오버레이·고정 헤더·스크롤 본문을 가진 다이얼로그 컨테이너다.
+ */
 import React from 'react';
 import { CloseIcon } from '../icons/CloseIcon';
 
@@ -9,6 +13,10 @@ interface ModalProps {
     width?: 'sm' | 'lg';
 }
 
+/**
+ * isOpen일 때만 렌더되는 공통 Modal.
+ * 배경 클릭 또는 닫기 버튼으로 onClose를 호출한다.
+ */
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, width = 'sm' }) => {
     if (!isOpen) return null;
 

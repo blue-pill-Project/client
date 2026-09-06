@@ -10,7 +10,7 @@ import PageLayout from '../../components/layout/PageLayout';
 import { useAuthStore } from '../../store/useAuthStore';
 import CharacterProfileItem from '../../components/character/CharacterProfileItem';
 
-// --- Icons ---
+// --- 쇼케이스용 아이콘 (순수 SVG) ---
 const PlusIcon = () => (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <g clipPath="url(#clip0_494_966)">
@@ -47,7 +47,7 @@ const UserIcon = () => (
     </svg>
 );
 
-// --- Constants ---
+// --- 쇼케이스용 상수 ---
 const VARIANTS = ['solid', 'Graysolid', 'Outline', 'Darksolid', 'Darkoutline', 'Rectangleoutline'] as const;
 const SIZES = ['l', 'm', 's', 'xs'] as const;
 
@@ -63,7 +63,8 @@ const TAB_ITEMS = [
     { id: 'skills', label: 'Skills' },
 ];
 
-// --- Sub-components ---
+// --- 하위 표시 컴포넌트 ---
+/** 컬러 토큰 이름·HEX를 한 줄로 보여주는 스와치 */
 const ColorSwatch = ({ name, token, hex, textColor = "text-base-50", border = false }: { name: string, token: string, hex: string, textColor?: string, border?: boolean }) => (
     <div className={`flex items-center justify-between p-3 rounded-lg ${token} ${textColor} ${border ? 'border border-base-800' : ''}`}>
         <div className="flex flex-col">
@@ -74,6 +75,7 @@ const ColorSwatch = ({ name, token, hex, textColor = "text-base-50", border = fa
     </div>
 );
 
+/** 섹션 제목과 부가 설명 */
 const SectionTitle = ({ title, subtitle }: { title: string, subtitle?: string }) => (
     <div className="space-y-2 mb-12">
         <div className="flex items-center gap-4">
@@ -84,6 +86,10 @@ const SectionTitle = ({ title, subtitle }: { title: string, subtitle?: string })
     </div>
 );
 
+/**
+ * 디자인 시스템 쇼케이스 페이지.
+ * 타이포·컬러·원자/복합 컴포넌트 변형을 한곳에서 미리본다.
+ */
 function DesignSystemShowcase() {
     const [dropdownValue, setDropdownValue] = useState<string>('');
     const [searchValue, setSearchValue] = useState('Search');
@@ -93,7 +99,7 @@ function DesignSystemShowcase() {
 
     return (
         <PageLayout>
-            {/* 1. Header */}
+            {/* 1. 헤더 */}
             <header className="mb-24 border-b border-base-800 pb-10 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-8">
                 <div>
                     <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
@@ -118,12 +124,12 @@ function DesignSystemShowcase() {
 
             <div className="flex flex-col gap-40">
 
-                {/* 2. Foundations */}
+                {/* 2. 파운데이션 (타이포·컬러) */}
                 <section>
                     <SectionTitle title="01 Foundations" subtitle="The core DNA: Typography and Color Palette." />
 
                     <div className="grid grid-cols-1 xl:grid-cols-12 gap-16">
-                        {/* Typography Deep Dive */}
+                        {/* 타이포그래피 */}
                         <div className="xl:col-span-7 space-y-12 bg-base-950/40 p-4 md:p-10 rounded-3xl border border-base-900/50">
                             <h3 className="text-header-4 text-base-200 font-bold flex items-center gap-3">
                                 <span className="text-primary text-body-4">/</span> Typography
@@ -171,7 +177,7 @@ function DesignSystemShowcase() {
                             </div>
                         </div>
 
-                        {/* Color Palette Deep Dive */}
+                        {/* 컬러 팔레트 */}
                         <div className="xl:col-span-5 space-y-12 bg-base-950/40 p-4 md:p-10 rounded-3xl border border-base-900/50">
                             <h3 className="text-header-4 text-base-200 font-bold flex items-center gap-3">
                                 <span className="text-primary text-body-4">/</span> Color Tokens
@@ -251,16 +257,16 @@ function DesignSystemShowcase() {
                     </div>
                 </section>
 
-                {/* 3. Atomic Components */}
+                {/* 3. 원자 컴포넌트 */}
                 <section>
                     <SectionTitle title="02 Atomic Components" subtitle="Simple elements: Chips, Dropdowns, Checkboxes, and Tabs." />
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                        {/* Chips Matrix */}
+                        {/* 칩 매트릭스 */}
                         <div className="bg-base-900/30 p-4 md:p-10 rounded-3xl border border-base-800/50 space-y-10">
                             <h4 className="text-header-4 text-base-300 font-bold border-b border-base-800 pb-4">Chips</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                                {/* Gray Variant */}
+                                {/* Gray 변형 */}
                                 <div className="space-y-6">
                                     <span className="text-[10px] text-base-600 font-bold uppercase tracking-widest">Variant: Gray</span>
                                     <div className="flex flex-col gap-4">
@@ -274,7 +280,7 @@ function DesignSystemShowcase() {
                                         </div>
                                     </div>
                                 </div>
-                                {/* Black Variant */}
+                                {/* Black 변형 */}
                                 <div className="space-y-6">
                                     <span className="text-[10px] text-base-600 font-bold uppercase tracking-widest">Variant: Black</span>
                                     <div className="flex flex-col gap-4">
@@ -291,7 +297,7 @@ function DesignSystemShowcase() {
                             </div>
                         </div>
 
-                        {/* Dropdown Showcase */}
+                        {/* 드롭다운 */}
                         <div className="bg-base-900/30 p-4 md:p-10 rounded-3xl border border-base-800/50 space-y-10">
                             <h4 className="text-header-4 text-base-300 font-bold border-b border-base-800 pb-4">Dropdowns</h4>
                             <div className="space-y-8">
@@ -316,7 +322,7 @@ function DesignSystemShowcase() {
                             </div>
                         </div>
 
-                        {/* Checkbox Showcase */}
+                        {/* 체크박스 */}
                         <div className="bg-base-900/30 p-4 md:p-10 rounded-3xl border border-base-800/50 space-y-10 lg:col-span-2">
                             <h4 className="text-header-4 text-base-300 font-bold border-b border-base-800 pb-4">Checkboxes</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -352,7 +358,7 @@ function DesignSystemShowcase() {
                             </div>
                         </div>
 
-                        {/* Tabs Showcase */}
+                        {/* 탭 */}
                         <div className="bg-base-900/30 p-4 md:p-10 rounded-3xl border border-base-800/50 space-y-10 lg:col-span-2">
                             <h4 className="text-header-4 text-base-300 font-bold border-b border-base-800 pb-4">Tabs (Taps)</h4>
                             <div className="space-y-12">
@@ -395,7 +401,7 @@ function DesignSystemShowcase() {
                 </section>
 
 
-                {/* 4. Button Matrix */}
+                {/* 4. 버튼 매트릭스 */}
                 <section>
                     <SectionTitle title="03 Button Matrix" subtitle="Complete permutation of all button styles, sizes, and states." />
 
@@ -439,12 +445,12 @@ function DesignSystemShowcase() {
                     </div>
                 </section>
 
-                {/* 5. Composite Components */}
+                {/* 5. 복합 컴포넌트 */}
                 <section>
                     <SectionTitle title="04 Composite Components" subtitle="Complex UI patterns built from atomic foundations." />
 
                     <div className="grid grid-cols-1 xl:grid-cols-12 gap-16">
-                        {/* User Profiles */}
+                        {/* 프로필 아이템 */}
                         <div className="xl:col-span-4 space-y-10">
                             <h3 className="text-header-4 text-base-200 font-bold flex items-center gap-3">
                                 <span className="text-primary text-body-4">/</span> Profile Items
@@ -473,7 +479,7 @@ function DesignSystemShowcase() {
                             </div>
                         </div>
 
-                        {/* Social Feed */}
+                        {/* 소셜 포스트 카드 */}
                         <div className="xl:col-span-8 space-y-10">
                             <h3 className="text-header-4 text-base-200 font-bold flex items-center gap-3">
                                 <span className="text-primary text-body-4">/</span> Social Post Cards
@@ -506,7 +512,7 @@ function DesignSystemShowcase() {
                     </div>
                 </section>
 
-                {/* 6. Interaction Playground */}
+                {/* 6. 인터랙션 플레이그라운드 */}
                 <section className="p-4 md:p-12 bg-linear-to-br from-base-900/40 via-background-main to-background-main rounded-[40px] border border-primary/20 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)]">
                     <SectionTitle title="05 Playground" subtitle="Simulating complex interactive states and layout behaviors." />
 
@@ -541,11 +547,11 @@ function DesignSystemShowcase() {
                     </div>
                 </section>
 
-                {/* 7. Search Bars Showcase */}
+                {/* 7. 검색바 */}
                 <section>
                     <SectionTitle title="06 Search Bars" subtitle="Search inputs with dark and light themes, matching the design spec." />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                        {/* Dark Variant */}
+                        {/* Dark 변형 */}
                         <div className="space-y-8 bg-base-800/40 p-4 md:p-10 rounded-3xl border border-base-900/50">
                             <h3 className="text-header-4 text-base-200 font-bold flex items-center gap-3">
                                 <span className="text-primary text-body-4">/</span> Dark Variant
@@ -562,7 +568,7 @@ function DesignSystemShowcase() {
                             </div>
                         </div>
 
-                        {/* Light Variant */}
+                        {/* Light 변형 */}
                         <div className="space-y-8 bg-base-800/40 p-4 md:p-10 rounded-3xl border border-base-900/50">
                             <h3 className="text-header-4 text-base-200 font-bold flex items-center gap-3">
                                 <span className="text-primary text-body-4">/</span> Light Variant
@@ -587,7 +593,7 @@ function DesignSystemShowcase() {
                 </section>
             </div>
 
-            {/* Footer */}
+            {/* 푸터 */}
             <footer className="mt-60 pt-16 border-t border-base-900 text-center pb-20">
                 <div className="flex justify-center gap-10 mb-8">
                     <div className="w-1.5 h-1.5 bg-base-800 rounded-full"></div>

@@ -1,3 +1,7 @@
+/**
+ * 로그룸 타임라인.
+ * 선택 날짜·시간 슬롯의 참가자별 로그 카드(또는 빈 슬롯 플레이스홀더)를 렌더한다.
+ */
 import { Send, Crown } from 'lucide-react';
 import { useMemo } from 'react';
 import type { ChatMessage, DayLogTimeSlot, LogRoomParticipant, SharedPost, DayLogEntry } from '../../lib/logRoomApi';
@@ -18,26 +22,36 @@ interface LogTimelineProps {
   onReply: (photoPublicId: string) => void;
 }
 
+/**
+ * 참가자별 로그 사진 타임라인.
+ * 원본 로그와 공유 사진을 photoPublicId로 병합하고, 최신 답장을 자막으로 표시한다.
+ */
 export const LogTimeline = ({
   timelineData, sharedPosts, chatMessages, participants, memberNames, selectedDate, selectedTimeSlot, onUpload, onReply
 }: LogTimelineProps) => {
   const slotData = timelineData.find((data) => data.timeSlot === selectedTimeSlot);
 
-  // Calculate current date and time slot
+  /** 오늘·현재 3시간 슬롯인지 (방장 업로드 버튼 노출 조건) */
   const now = new Date();
   const today = now.toISOString().split('T')[0];
   const currentSlot = Math.floor(now.getHours() / 3) * 3;
   const isCurrentSlot = selectedDate === today && selectedTimeSlot === currentSlot;
 
-  // Find shared posts for the selected date and time slot
+  /** 선택 날짜·슬롯에 해당하는 공유 게시물 사진 */
   const sharedPostsForSlot = sharedPosts.filter(p => p.postDate === selectedDate && p.timeSlot === selectedTimeSlot);
   const sharedEntries = sharedPostsForSlot.flatMap(p => p.photos as DayLogEntry[]);
 
-  // Merge raw entries and shared photos, ensuring uniqueness by photoPublicId
+  /**
+   * 원본 슬롯 엔트리와 공유 사진을 합친 뒤 photoPublicId로 중복 제거한다.
+   * 같은 사진이 원본·공유에 동시에 있어도 한 장만 표시한다.
+   */
   const allEntries = [...(slotData?.entries || []), ...sharedEntries];
   const uniqueEntries = Array.from(new Map(allEntries.map(e => [e.photoPublicId, e])).values());
 
-  // 사진별 최신 답장 (quotedPhotoPublicId 기준)
+  /**
+   * 사진별 최신 채팅 답장 (quotedPhotoPublicId 기준).
+   * 캡션보다 답장이 있으면 카드 자막으로 우선 표시한다.
+   */
   const latestReplyByPhotoId = useMemo(() => {
     const map = new Map<string, ChatMessage>();
     for (const msg of chatMessages) {
@@ -51,8 +65,10 @@ export const LogTimeline = ({
     return map;
   }, [chatMessages]);
 
-  // Fallback name lookup for participants with no entry in the selected slot,
-  // built from any entry across the whole day (raw logs + shared posts)
+  /**
+   * 선택 슬롯에 엔트리가 없는 참가자용 이름 폴백.
+   * 당일 전체 로그·공유 사진에서 memberPublicId → authorName을 수집한다.
+   */
   const nameByMember = new Map<string, string>();
   for (const e of [...timelineData.flatMap(t => t.entries), ...sharedPosts.flatMap(p => p.photos)]) {
     if (!nameByMember.has(e.memberPublicId)) nameByMember.set(e.memberPublicId, e.authorName);
@@ -129,7 +145,7 @@ export const LogTimeline = ({
               </div>
             );
           } else {
-            // No entry placeholder
+            /** 해당 슬롯에 사진이 없는 참가자 플레이스홀더 (현재 슬롯·방장만 업로드 버튼) */
             return (
               <div
                 key={participant.memberPublicId}

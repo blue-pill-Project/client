@@ -1,3 +1,7 @@
+/**
+ * 공통 검색 입력 바.
+ * light/dark 변형과 입력값 클리어 버튼을 지원한다.
+ */
 import React from 'react';
 import { cn } from '../../lib/utils';
 
@@ -10,13 +14,8 @@ interface SearchBarProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 /**
- * SearchBar 컴포넌트
- * 
- * 디자인에 따라 두 가지 주요 변형을 지원합니다:
- * - 'dark': 어두운 배경에 밝은 아이콘/텍스트
- * - 'light': 크림색 배경(base-300)에 어두운 아이콘/텍스트
- * 
- * 입력값이 있을 때 삭제 버튼(X)이 자동으로 나타납니다.
+ * 검색 아이콘·클리어 버튼이 있는 SearchBar.
+ * - dark: 어두운 배경 / light: 크림색 배경
  */
 const SearchBar = React.forwardRef<HTMLInputElement, SearchBarProps>(
   ({
@@ -32,6 +31,7 @@ const SearchBar = React.forwardRef<HTMLInputElement, SearchBarProps>(
     const isDark = variant === 'dark';
     const hasValue = value && String(value).length > 0;
 
+    /** 클리어 버튼 클릭 시 onClear를 호출한다 */
     const handleClear = (e: React.MouseEvent) => {
       e.preventDefault();
       if (onClear) {

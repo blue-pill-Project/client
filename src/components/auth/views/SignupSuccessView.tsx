@@ -1,16 +1,24 @@
+/**
+ * 회원가입 완료를 안내하고 서비스를 시작하게 하는 뷰.
+ */
 import React from 'react';
 import { useAuthStore } from '../../../store/useAuthStore';
 import Button from '../../common/Button';
 
+/** 가입 완료 체크 아이콘 */
 const CheckIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M20 6L9 17L4 12" stroke="#62F6B5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
+/**
+ * 가입 완료 메시지를 보여 주고 모달을 닫아 서비스를 시작한다.
+ */
 const SignupSuccessView: React.FC = () => {
   const closeModal = useAuthStore((state) => state.closeModal);
 
+  /** 인증 모달을 닫고 메인 화면으로 돌아간다. */
   const handleStart = () => {
     closeModal();
   };

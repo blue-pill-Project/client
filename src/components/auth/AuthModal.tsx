@@ -1,3 +1,6 @@
+/**
+ * 로그인·회원가입 플로우를 전체 화면 모달로 표시하는 모듈.
+ */
 import React, { useEffect } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import LoginView from './views/LoginView';
@@ -5,6 +8,7 @@ import SignupStep1View from './views/SignupStep1View';
 import SignupStep2View from './views/SignupStep2View';
 import SignupSuccessView from './views/SignupSuccessView';
 
+/** 모달 헤더의 뒤로가기 화살표 아이콘 */
 const BackArrowIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M19 12H5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -12,17 +16,20 @@ const BackArrowIcon = () => (
   </svg>
 );
 
+/**
+ * 인증 스토어의 currentView에 따라 로그인/회원가입 단계를 전환하는 풀스크린 모달.
+ */
 const AuthModal: React.FC = () => {
   const { isModalOpen, currentView, setView, closeModal } = useAuthStore();
 
-  // escape 키로 모달 닫기 및 모달이 열릴 때 배경 스크롤 방지
+  // Escape로 닫기, 열림 시 배경 스크롤 잠금
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closeModal();
     };
     if (isModalOpen) {
       window.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden'; // 모달이 열릴 때 배경 스크롤 방지
+      document.body.style.overflow = 'hidden'; // 모달 열림 시 배경 스크롤 방지
     }
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
@@ -32,6 +39,7 @@ const AuthModal: React.FC = () => {
 
   if (!isModalOpen) return null;
 
+  /** 현재 단계에 따라 이전 뷰로 이동하거나 모달을 닫는다. */
   const handleBack = () => {
     switch (currentView) {
       case 'signup-step1':
@@ -48,6 +56,7 @@ const AuthModal: React.FC = () => {
     }
   };
 
+  /** currentView에 대응하는 인증 단계 뷰를 반환한다. */
   const renderView = () => {
     switch (currentView) {
       case 'login': return <LoginView />;

@@ -1,3 +1,7 @@
+/**
+ * 페이지 최상단 공통 헤더.
+ * 카테고리·타이틀·설명·액션 버튼을 일관된 레이아웃으로 배치한다.
+ */
 import React from 'react';
 import Button from './Button';
 import { cn } from '../../lib/utils';
@@ -21,7 +25,7 @@ interface PageHeaderProps {
 }
 
 /**
- * 페이지 최상단 공통 헤더 컴포넌트
+ * 라이브러리/로그룸 등 목록 페이지용 PageHeader.
  */
 const PageHeader: React.FC<PageHeaderProps> = ({
   category,

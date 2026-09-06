@@ -1,3 +1,7 @@
+/**
+ * 로그 사진 업로드 모달.
+ * 선택한 파일 미리보기와 캡션 입력을 받아 업로드를 제출한다.
+ */
 import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../common/Modal';
 import Button from '../common/Button';
@@ -10,6 +14,10 @@ interface LogPhotoUploadModalProps {
   onSubmit: (caption: string) => void;
 }
 
+/**
+ * 로그 사진 업로드 UI.
+ * 파일이 바뀌면 캡션을 초기화하고, 미리보기 Object URL을 정리한다.
+ */
 export const LogPhotoUploadModal = ({
   isOpen,
   file,
@@ -26,11 +34,13 @@ export const LogPhotoUploadModal = ({
     setCaption('');
   }
 
+  /** 선택 파일의 미리보기 Object URL */
   const previewUrl = useMemo(
     () => (file ? URL.createObjectURL(file) : null),
     [file],
   );
 
+  /** 미리보기 URL을 언마운트/교체 시 revoke한다 */
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -39,6 +49,7 @@ export const LogPhotoUploadModal = ({
 
   if (!isOpen || !file) return null;
 
+  /** 트림된 캡션과 함께 업로드를 제출한다 */
   const handleSubmit = () => {
     onSubmit(caption.trim());
   };

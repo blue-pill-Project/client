@@ -1,3 +1,7 @@
+/**
+ * 로그룸 상단 헤더.
+ * 방 정보·3시간 슬롯 선택·캘린더·공유/삭제·채팅 토글을 제공한다.
+ */
 import { useEffect, useRef, useState } from 'react';
 import { Calendar, Share2, ArrowLeft, MessageCircleMore, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -24,6 +28,10 @@ interface LogRoomHeaderProps {
   isDeleting?: boolean;
 }
 
+/**
+ * 로그룸 헤더 UI.
+ * 미래 날짜/슬롯은 비활성화하고, 캘린더는 바깥 클릭으로 닫는다.
+ */
 export const LogRoomHeader = ({
   roomName,
   participants,
@@ -47,11 +55,12 @@ export const LogRoomHeader = ({
   const calendarRef = useRef<HTMLDivElement>(null);
   const timeSlots = [6, 9, 12, 15, 18, 21, 24, 3];
 
-  // 현재 시각 기준, 미래 날짜/타임슬롯은 선택하지 못하게 막는다 (로컬 타임존 기준)
+  /** 로컬 타임존 기준 오늘·현재 API 슬롯 (미래 선택 차단용) */
   const now = new Date();
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const currentApiSlot = Math.floor(now.getHours() / 3) * 3;
 
+  /** 캘린더 바깥 클릭 시 팝오버를 닫는다 */
   useEffect(() => {
     if (!isCalendarOpen) return;
     const handleClickOutside = (event: MouseEvent) => {

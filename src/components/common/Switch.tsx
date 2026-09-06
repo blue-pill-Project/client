@@ -1,3 +1,7 @@
+/**
+ * 공통 토글 스위치.
+ * on/off boolean 상태를 시각적으로 전환한다.
+ */
 import React from 'react';
 import { cn } from '../../lib/utils';
 
@@ -8,6 +12,9 @@ interface SwitchProps {
   className?: string;
 }
 
+/**
+ * 라벨 옵션이 있는 on/off Switch.
+ */
 const Switch: React.FC<SwitchProps> = ({ checked, onChange, label, className }) => {
   return (
     <label className={cn('inline-flex items-center gap-2 cursor-pointer select-none', className)}>

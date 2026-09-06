@@ -1,8 +1,13 @@
+/**
+ * 로그인 모달·인증 여부·현재 유저 정보를 관리하는 Zustand 스토어.
+ */
 import { create } from 'zustand';
 import { setAccessToken } from '../lib/token';
 
+/** 인증 모달에 표시할 화면 단계 */
 export type AuthView = 'login' | 'signup-step1' | 'signup-step2' | 'signup-success';
 
+/** 클라이언트에서 쓰는 유저 프로필 요약 */
 export interface User {
   publicId: string;
   nickname: string;
@@ -14,6 +19,7 @@ export interface User {
   postCount: number;
 }
 
+/** 인증 스토어 상태와 액션 */
 interface AuthState {
   isModalOpen: boolean;
   currentView: AuthView;
@@ -28,6 +34,9 @@ interface AuthState {
   logout: () => void;
 }
 
+/**
+ * 인증 UI·세션 상태 전역 스토어.
+ */
 export const useAuthStore = create<AuthState>((set) => ({
   isModalOpen: false,
   currentView: 'login',

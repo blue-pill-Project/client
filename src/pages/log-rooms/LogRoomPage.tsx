@@ -13,11 +13,17 @@ import { expandChatBatches, saveChatBatchSplit } from '../../lib/chatBatchCache'
 import { getErrorMessage, isMobile } from '../../lib/utils';
 import type { ChatMessage } from '../../lib/logRoomApi';
 
+/**
+ * 로그방 상세 페이지.
+ * 일별 타임라인·채팅·사진 업로드·공유·방 삭제를 한 화면에서 처리한다.
+ */
+
 const CHAT_PAGE_SIZE = 10;
 const AI_POLL_INTERVAL_MS = 400;
 const AI_POLL_MAX_ATTEMPTS = 75; // 약 30초
 
 // 로컬 타임존 기준 YYYY-MM-DD (toISOString()은 UTC라 자정~오전9시 KST 구간에서 하루 어긋남)
+/** 로컬 기준 날짜 키(YYYY-MM-DD) 생성 */
 const getLocalDateKey = (d = new Date()) => {
     const y = d.getFullYear();
     const m = (d.getMonth() + 1).toString().padStart(2, '0');
@@ -25,9 +31,11 @@ const getLocalDateKey = (d = new Date()) => {
     return `${y}-${m}-${day}`;
 };
 
+/** 채팅 메시지를 생성 시각 오름차순으로 정렬 */
 const sortByCreatedAt = (a: ChatMessage, b: ChatMessage) =>
     new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
 
+/** 지정 ms만큼 대기 */
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /** 서버에 저장된 방금 보낸 유저(배치) 메시지 인덱스 */
@@ -38,6 +46,7 @@ const findBatchedUserIndex = (messages: ChatMessage[], batchedContent: string) =
     return -1;
 };
 
+/** 유저 메시지 이후에 AI(비-isMe) 답장이 있는지 확인 */
 const hasAiReplyAfter = (messages: ChatMessage[], userIdx: number) => {
     if (userIdx < 0) return false;
     return messages.slice(userIdx + 1).some((m) => !m.isMe);
@@ -80,6 +89,10 @@ const mergePreservingOlder = (prev: ChatMessage[], recent: ChatMessage[]) => {
     return [...preserved, ...recent].sort(sortByCreatedAt);
 };
 
+/**
+ * 라우트용 래퍼.
+ * publicId가 바뀌면 key로 본문 컴포넌트를 통째로 리마운트한다.
+ */
 export const LogRoomPage = () => {
     const { publicId } = useParams<{ publicId: string }>();
     if (!publicId) return null;
@@ -87,6 +100,7 @@ export const LogRoomPage = () => {
     return <LogRoomPageContent key={publicId} publicId={publicId} />;
 };
 
+/** 로그방 상세 본문: 타임라인·채팅·업로드·공유 상태와 핸들러 */
 const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
     const navigate = useNavigate();
     const currentUser = useAuthStore((state) => state.user);
@@ -106,6 +120,7 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
     const [selectedDate, setSelectedDate] = useState(getLocalDateKey());
 
     // 현재 시각 기준 초기 타임슬롯 계산: 0, 3, 6, 9, 12, 15, 18, 21
+    /** 현재 시각을 3시간 단위 슬롯(0~21)으로 변환 */
     const getInitialTimeSlot = () => {
         const hour = new Date().getHours();
         return Math.floor(hour / 3) * 3;
@@ -142,12 +157,14 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
         return next;
     }, [markedDates, timelineData, selectedDate]);
 
+    /** 달력에 표시할 월의 로그 있는 날짜들을 조회해 markedDates에 반영 */
     const loadCalendarMonth = useCallback(async (year: number, month: number) => {
         if (!publicId) return;
         const monthKey = `${year}-${month}`;
         if (loadedCalendarMonthsRef.current.has(monthKey)) return;
         loadedCalendarMonthsRef.current.add(monthKey);
 
+        // 해당 월 모든 날짜에 로그 존재 여부를 병렬 조회해 달력 마크에 반영
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const dates = Array.from({ length: daysInMonth }, (_, i) => {
             const day = String(i + 1).padStart(2, '0');
@@ -178,6 +195,7 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
     // 방의 공유된 게시물 목록을 새로 불러온다. 다른 탭/페이지(홈 피드)에서 게시물을 삭제/공유하면
     // 이 페이지의 sharedPosts가 낡은 채로 남아 "이미 공유된 시간대예요"가 잘못 표시될 수 있어서,
     // 날짜가 바뀌거나 탭에 다시 포커스가 올 때마다 재조회한다.
+    /** 공유 게시물 목록 재조회 */
     const fetchSharedPosts = useCallback(async () => {
         if (!publicId) return;
         try {
@@ -192,6 +210,7 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
     useEffect(() => {
         if (!publicId) return;
 
+        /** 선택 날짜의 데이로그(타임라인) 조회 */
         const fetchTimeline = async () => {
             try {
                 const timelineResponse = await logRoomApi.getDayLog(publicId, selectedDate);
@@ -218,6 +237,7 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
     useEffect(() => {
         if (!publicId) return;
 
+        /** 채팅 최근 페이지·참가자·캐릭터 이름 등 방 메타 로드 */
         const fetchRoomData = async () => {
             try {
                 const chatResponse = await logRoomApi.getChatMessages(publicId, { size: CHAT_PAGE_SIZE });
@@ -265,6 +285,7 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [publicId]);
 
+    /** 커서 기반 이전 채팅 페이지를 앞에 이어 붙임 */
     const loadOlderChatMessages = useCallback(async () => {
         if (!publicId || !chatHasMore || chatNextCursor == null || isLoadingOlderChat) return;
 
@@ -293,6 +314,7 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
         }
     }, [publicId, chatHasMore, chatNextCursor, isLoadingOlderChat]);
 
+    /** 파일 선택 후 공유된 슬롯이 아니면 업로드 모달 오픈 */
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         event.target.value = '';
@@ -307,12 +329,14 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
         setIsUploadModalOpen(true);
     };
 
+    /** 업로드 중이면 닫지 않고, 모달·선택 파일 초기화 */
     const closeUploadModal = () => {
         if (isUploading) return;
         setIsUploadModalOpen(false);
         setPendingFile(null);
     };
 
+    /** R2 업로드 후 로그 사진 API 호출·타임라인 갱신 */
     const handleUploadSubmit = async (caption: string) => {
         if (!pendingFile || !publicId) return;
 
@@ -347,6 +371,7 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
 
     // 유저 메시지는 화면에 각각 표시하고, 일반 채팅은 5초 디바운스 후 서버로 묶어서 전송한다.
     // 사진 답장은 sendMessage에서 디바운스 없이 바로 flush한다.
+    /** 대기 중인 채팅을 묶어 서버 전송 후 AI 답장까지 반영 */
     const flushPendingChats = async () => {
         if (!publicId || pendingChatsRef.current.length === 0) return;
 
@@ -431,6 +456,7 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
         }
     };
 
+    /** 화면엔 즉시 말풍선 추가, 서버 전송은 디바운스(사진 답장은 즉시) */
     const sendMessage = (rawContent: string) => {
         const content = rawContent.trim();
         if (!publicId || !content || isInputLocked || isAiTyping) return;
@@ -469,6 +495,7 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
     // 현재 선택된 (날짜, 시간대)를 게시물로 공유하고, 모든 로그방의 공유 게시물이 모이는
     // 홈 피드(/feed)로 이동한다. 방금 공유한 게시물 정보는 state로 함께 전달해
     // 피드 페이지에서 곧바로 상세를 열어 보여줄 수 있게 한다.
+    /** 선택 슬롯을 공유 게시물로 올리고 피드로 이동 */
     const handleShare = async () => {
         if (!publicId || isSharing) return;
 
@@ -495,6 +522,7 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
     };
 
     // 방장만 방을 삭제할 수 있다 (LogRoomHeader에서 isOwner일 때만 버튼 노출).
+    /** 로그방 삭제 후 목록으로 이동 */
     const handleDeleteRoom = async () => {
         if (isDeleting) return;
         if (!confirm('정말로 이 로그방을 삭제하시겠습니까? 대화, 사진, 게시물이 모두 삭제되며 되돌릴 수 없습니다.')) return;
@@ -513,6 +541,7 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
     };
 
     // 달력에서 날짜를 고르면, 그 날짜에 로그가 있는 타임슬롯 중 가장 늦은 구간으로 이동한다.
+    /** 날짜 변경 시 타임라인 로드 후 최신 슬롯 선택 */
     const handleDateChange = async (date: string) => {
         setSelectedDate(date);
         if (!publicId) return;
@@ -537,6 +566,7 @@ const LogRoomPageContent = ({ publicId }: { publicId: string }) => {
 
     // 채팅에서 특정 로그/게시물을 눌렀을 때 해당 (날짜, 시간대)의 타임라인으로 이동.
     // 모바일에서는 채팅과 타임라인이 배타적으로 표시되므로, 채팅을 닫아 타임라인이 보이게 한다.
+    /** 채팅에서 지정한 날짜·슬롯으로 타임라인 점프 */
     const jumpToLog = (date: string, timeSlot: number) => {
         setSelectedDate(date);
         setSelectedTimeSlot(timeSlot);

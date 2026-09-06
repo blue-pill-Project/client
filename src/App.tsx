@@ -14,16 +14,21 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import CharacterCreationPage from './pages/character/create/CharacterCreationPage';
 import CharacterEditPage from './pages/character/edit/CharacterEditPage';
 
+/**
+ * 앱 루트 라우터.
+ * 공개/보호 경로를 정의하고 인증 초기화·AuthModal을 전역으로 마운트한다.
+ */
 function App() {
   return (
     <>
+      {/* 앱 시작 시 세션/토큰 복원 */}
       <AuthInitializer />
       <Routes>
-        {/* Character Library is now the home page */}
+        {/* 홈·캐릭터 라이브러리 */}
         <Route path="/" element={<CharacterLibraryPage />} />
         <Route path="/library" element={<CharacterLibraryPage />} />
 
-        {/* Protected routes */}
+        {/* 로그인 필요 경로 */}
         <Route
           path="/library/new"
           element={
@@ -81,17 +86,16 @@ function App() {
           }
         />
 
-        {/* Public routes */}
+        {/* 공개 경로 */}
         <Route path="/users/:publicId" element={<ProfilePage />} />
         <Route path="/auth/callback" element={<CallbackPage />} />
         <Route path="/login" element={<LoginRedirectPage />} />
         <Route path="/design-system" element={<DesignPage />} />
       </Routes>
+      {/* 로그인·회원가입 모달 (전역) */}
       <AuthModal />
     </>
   );
 }
 
 export default App;
-
-

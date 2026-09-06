@@ -1,3 +1,6 @@
+/**
+ * 앱 전역 네비게이션 — 홈·로그방·피드·프로필/로그인 이동을 담당한다.
+ */
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn, getErrorMessage } from '../../lib/utils';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -29,6 +32,9 @@ const ProfileIcon = () => (
   </svg>
 );
 
+/**
+ * 데스크톱 좌측·모바일 하단 탭바로 주요 경로 이동과 로그아웃을 처리한다.
+ */
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -39,6 +45,7 @@ const Sidebar = () => {
   const isFeed = location.pathname.startsWith('/feed');
   const isProfile = location.pathname.startsWith('/profile') || location.pathname.startsWith('/users');
 
+  /** 서버 로그아웃 후 로컬 인증 상태를 초기화한다. */
   const handleLogout = async () => {
     try {
       await apiLogout();

@@ -1,3 +1,7 @@
+/**
+ * 공통 드롭다운 셀렉트.
+ * 옵션 목록에서 단일 값을 선택하는 커스텀 셀렉트 UI다.
+ */
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '../../lib/utils';
 
@@ -15,6 +19,9 @@ interface DropdownProps {
   className?: string;
 }
 
+/**
+ * 바깥 클릭으로 닫히는 단일 선택 Dropdown.
+ */
 const Dropdown = ({
   options,
   value,
@@ -29,6 +36,7 @@ const Dropdown = ({
 
   const selectedOption = options.find((opt) => opt.value === value);
 
+  /** 메뉴 바깥 클릭 시 드롭다운을 닫는다 */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -39,12 +47,14 @@ const Dropdown = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  /** 비활성 상태가 아니면 메뉴 열림/닫힘을 토글한다 */
   const handleToggle = () => {
     if (!disabled) {
       setIsOpen(!isOpen);
     }
   };
 
+  /** 옵션을 선택하고 메뉴를 닫는다 */
   const handleSelect = (optionValue: string) => {
     onChange?.(optionValue);
     setIsOpen(false);

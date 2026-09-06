@@ -1,8 +1,13 @@
+/**
+ * 인증 헤더·쿠키를 포함한 공통 HTTP 클라이언트.
+ * 401 시 토큰 재발급 후 원요청을 재시도하고, 실패 시 로그아웃 처리한다.
+ */
 import { useAuthStore } from '../store/useAuthStore';
 import { getAccessToken, setAccessToken } from './token';
 import { BASE_URL } from './config';
 import { getErrorMessage } from './utils';
 
+/** fetch 옵션에 JSON/FormData body용 data 필드를 추가한 타입 */
 interface FetchOptions extends RequestInit {
   data?: unknown;
 }
@@ -52,6 +57,10 @@ const attemptTokenReissue = async (): Promise<string | null> => {
   return null;
 };
 
+/**
+ * 인증·재발급을 포함한 공통 API 요청.
+ * ApiResponse 래핑이면 data만 반환한다.
+ */
 export async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
   const { data, ...rest } = options;
   const url = `${BASE_URL}${endpoint}`;
@@ -107,6 +116,7 @@ export async function apiFetch<T>(endpoint: string, options: FetchOptions = {}):
   return result;
 }
 
+/** GET/POST/PUT/PATCH/DELETE 편의 메서드 모음 */
 export const api = {
   get: <T>(endpoint: string, options?: FetchOptions) => 
     apiFetch<T>(endpoint, { ...options, method: 'GET' }),

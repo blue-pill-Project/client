@@ -1,3 +1,7 @@
+/**
+ * 공통 칩(배지) 컴포넌트.
+ * 작은 상태·태그 라벨을 아이콘과 함께 표시한다.
+ */
 import React from 'react';
 import { cn } from '../../lib/utils';
 
@@ -12,6 +16,9 @@ interface ChipProps {
   className?: string;
 }
 
+/**
+ * 비상호작용 태그/상태 Chip.
+ */
 const Chip = ({
   variant = 'gray',
   size = 'm',

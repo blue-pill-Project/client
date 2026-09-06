@@ -1,3 +1,6 @@
+/**
+ * 클래스 병합·이미지 URL·아바타 폴백·반응형·에러 메시지 등 공용 유틸.
+ */
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import type { SyntheticEvent } from 'react';
@@ -11,6 +14,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * R2 키 또는 절대 URL을 브라우저에서 쓸 이미지 URL로 변환한다.
+ * key가 없으면 null을 반환한다.
+ */
 export const getImageUrl = (key: string | null) => {
   if (!key) return null;
   if (key.startsWith('http')) return key;
@@ -29,6 +36,9 @@ export const handleAvatarError = (e: SyntheticEvent<HTMLImageElement>) => {
   img.src = '/default-profile.svg';
 };
 
+/**
+ * 뷰포트 너비가 1024px 이하인지 판별한다 (모바일/태블릿 UI 분기용).
+ */
 export const isMobile = () => {
   if (typeof window === 'undefined') return false;
   return window.innerWidth <= 1024;

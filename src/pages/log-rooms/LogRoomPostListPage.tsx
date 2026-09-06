@@ -12,6 +12,7 @@ import * as logRoomApi from '../../lib/logRoomApi';
 import type { SharedPost, PostShareResponse, LogRoomParticipant } from '../../lib/logRoomApi';
 import { getErrorMessage, getImageUrl, handleAvatarError } from '../../lib/utils';
 
+/** 피드에서 같은 로그방 게시물을 묶을 때 쓰는 그룹 타입 */
 interface RoomGroup {
   roomPublicId: string;
   roomName: string;
@@ -19,11 +20,14 @@ interface RoomGroup {
   posts: SharedPost[];
 }
 
+/** 날짜 문자열을 UI용(YYYY. MM. DD)으로 변환 */
 const formatDisplayDate = (date: string) => date.replaceAll('-', '. ');
 
+/** 타임슬롯 숫자를 HH:00 형태로 표시 (0시는 24:00) */
 const formatTimeSlot = (timeSlot: number) =>
   `${(timeSlot === 0 ? 24 : timeSlot).toString().padStart(2, '0')}:00`;
 
+/** 피드 컬럼 로딩 스켈레톤 */
 const SkeletonColumn = () => (
   <div className="space-y-4 animate-pulse">
     <div className="space-y-2 pb-4 border-b border-base-800">
@@ -39,9 +43,14 @@ const SkeletonColumn = () => (
   </div>
 );
 
+/**
+ * 홈 피드(공유 로그 게시물) 페이지.
+ * 전체 공유 게시물을 로그방별 컬럼으로 모아보고 검색·날짜 필터·삭제를 제공한다.
+ */
 const LogRoomPostListPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  // 공유 직후 리다이렉트 시 상세 모달을 바로 열기 위한 신규 게시물 참조
   const newPostRef = useRef((location.state as { newPost?: PostShareResponse } | null)?.newPost ?? null);
 
   const [posts, setPosts] = useState<SharedPost[]>([]);
@@ -54,6 +63,7 @@ const LogRoomPostListPage = () => {
   const [selectedPost, setSelectedPost] = useState<SharedPost | null>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
 
+  /** 공유 게시물 첫/다음 페이지 조회 (공유 직후 상세 자동 오픈) */
   const fetchPosts = async (isFirst = true) => {
     setLoading(true);
     try {
@@ -79,6 +89,7 @@ const LogRoomPostListPage = () => {
   };
 
   // 공유한 본인만 삭제 가능 (원본 로그 사진은 유지되고 공유만 취소됨)
+  /** 내 공유 게시물 삭제(공유 취소) */
   const handleDeletePost = async (publicId: string) => {
     if (!confirm('이 게시물을 삭제하시겠습니까? 공유가 취소되며 되돌릴 수 없습니다.')) return;
 
@@ -102,6 +113,7 @@ const LogRoomPostListPage = () => {
 
   useEffect(() => {
     if (!isCalendarOpen) return;
+    /** 달력 바깥 클릭 시 닫기 */
     const handleClickOutside = (event: MouseEvent) => {
       if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
         setIsCalendarOpen(false);
@@ -111,6 +123,7 @@ const LogRoomPostListPage = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isCalendarOpen]);
 
+  // 날짜·검색어로 클라이언트 필터
   const filteredPosts = posts.filter(post => {
     if (dateFilter && post.postDate !== dateFilter) return false;
     if (searchKeyword) {

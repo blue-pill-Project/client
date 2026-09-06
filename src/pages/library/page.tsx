@@ -13,6 +13,10 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useDeleteCharacter } from '../../hooks/useDeleteCharacter';
 import { LibrarySection } from '../../components/common/LibrarySection';
 
+/**
+ * 캐릭터 라이브러리(홈) 페이지.
+ * 검색·정렬·무한 스크롤로 캐릭터를 탐색하고 생성/수정/삭제를 제공한다.
+ */
 const CharacterLibraryPage = () => {
   const navigate = useNavigate();
   const {
@@ -40,12 +44,12 @@ const CharacterLibraryPage = () => {
 
   return (
     <PageLayout>
-      {/* --- Character Detail Modal --- */}
+      {/* 캐릭터 상세 모달 */}
       {selectedCharacter && (
         <CharacterInfoModal character={selectedCharacter} onClose={() => setSelectedCharacter(null)} />
       )}
 
-      {/* --- Main UI --- */}
+      {/* 헤더·목록·생성 CTA */}
       <PageHeader
         category="LIBRARY"
         title="Characters"
@@ -80,6 +84,7 @@ const CharacterLibraryPage = () => {
         ))}
       </div>
 
+      {/* 다음 페이지 로드 */}
       {hasNext && (
         <div className="flex justify-center my-16">
           <Button
@@ -94,7 +99,7 @@ const CharacterLibraryPage = () => {
         </div>
       )}
 
-      {/* FAB & Menu */}
+      {/* 플로팅 생성 메뉴 (게시물·캐릭터) */}
       <div className="fixed bottom-12 right-12 z-150">
         <div className={cn("absolute bottom-20 right-0 flex flex-col gap-2 transition-all duration-300 origin-bottom scale-95 opacity-0 pointer-events-none", isFABOpen && "scale-100 opacity-100 pointer-events-auto")}>
           <button

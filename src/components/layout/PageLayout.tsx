@@ -1,3 +1,6 @@
+/**
+ * 사이드바와 메인 콘텐츠 영역을 묶는 공통 페이지 레이아웃.
+ */
 import React from 'react';
 import Sidebar from './Sidebar';
 import { cn } from '../../lib/utils';
@@ -9,9 +12,13 @@ interface PageLayoutProps {
   containerClassName?: string;
 }
 
+/**
+ * 데스크톱 좌측·모바일 하단 네비와 함께 중앙 정렬된 페이지 본문을 렌더한다.
+ */
 const PageLayout = ({ children, className, containerClassName }: PageLayoutProps) => {
 
   const location = useLocation();
+  // 생성/수정 페이지는 더 넓은 레이아웃을 사용한다
   const isCreateOrEditPage = location.pathname === '/log-rooms/new'
     || location.pathname.startsWith('/log-rooms/edit')
     || location.pathname === '/library/new'

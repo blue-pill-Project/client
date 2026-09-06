@@ -12,6 +12,7 @@ import { LockIcon } from '../../components/icons/LockIcon';
 import { CrownIcon } from '../../components/icons/CrownIcon';
 import { getErrorMessage, getImageUrl, handleAvatarError } from '../../lib/utils';
 
+/** 로그방 카드 로딩 스켈레톤 */
 const SkeletonCard = () => (
   <div className="bg-base-950/40 border border-base-900/60 rounded-[28px] overflow-hidden animate-pulse">
     <div className="aspect-video bg-base-900" />
@@ -27,6 +28,10 @@ const SkeletonCard = () => (
 
 type SortOption = 'LATEST' | 'NAME';
 
+/**
+ * 내 로그방 목록 페이지.
+ * 커서 페이지네이션으로 참여 중인 방을 불러오고 검색·정렬한다.
+ */
 const LogRoomListPage = () => {
   const navigate = useNavigate();
   const [logRooms, setLogRooms] = useState<LogRoomListItem[]>([]);
@@ -42,6 +47,7 @@ const LogRoomListPage = () => {
     { label: '이름 순', value: 'NAME' },
   ];
 
+  /** 첫 페이지 또는 다음 커서 페이지의 로그방 목록 조회 */
   const fetchLogRooms = async (isFirst = true) => {
     setLoading(true);
     try {
@@ -71,6 +77,7 @@ const LogRoomListPage = () => {
     fetchLogRooms(true);
   }, []);
 
+  // 클라이언트에서 키워드 필터·정렬 적용
   const filteredRooms = logRooms
     .filter(room =>
       room.name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
@@ -114,7 +121,7 @@ const LogRoomListPage = () => {
               className="group bg-base-950 rounded-[28px] overflow-hidden border border-base-900 hover:border-primary/50 hover:shadow-[0_0_40px_rgba(98,246,181,0.1)] transition-all duration-500 cursor-pointer"
               onClick={() => navigate(`/log-rooms/${room.publicId}`, { state: { roomName: room.name } })}
             >
-              {/* Thumbnail */}
+              {/* 썸네일 */}
               <div className="relative aspect-video bg-base-900">
                 <div className="absolute inset-0 overflow-hidden">
                   {room.backgroundImageUrl ? (
@@ -130,7 +137,7 @@ const LogRoomListPage = () => {
                   )}
                 </div>
 
-                {/* Overlapping participant avatars */}
+                {/* 참가자 아바타 겹침 */}
                 <div className="absolute -bottom-5 right-4 z-10 flex -space-x-3">
                   {room.participants.slice(0, 3).map((p, idx) => (
                     <div key={idx} className="w-11 h-11 rounded-full border-2 border-black/40 overflow-hidden bg-base-800">
@@ -140,7 +147,7 @@ const LogRoomListPage = () => {
                 </div>
               </div>
 
-              {/* Info panel */}
+              {/* 방 정보 */}
               <div className="p-6">
                 <p className="text-[11px] text-base-500 font-medium truncate mb-1">
                   {room.participants.map(p => p.name).join(', ')}

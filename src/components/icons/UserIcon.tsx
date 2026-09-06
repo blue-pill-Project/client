@@ -1,3 +1,8 @@
+/**
+ * 사용자 SVG 아이콘.
+ */
+
+/** 유저/프로필 관련 표시용 아이콘 */
 export const UserIcon = () => (
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
         <g clipPath="url(#clip0_2629_6428)">

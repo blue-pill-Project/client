@@ -1,3 +1,6 @@
+/**
+ * 회원 탈퇴 확인 및 사유 입력을 처리하는 모달 모듈.
+ */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../common/Button';
@@ -13,6 +16,9 @@ interface WithdrawModalProps {
   onClose: () => void;
 }
 
+/**
+ * 탈퇴 사유를 받아 계정 탈퇴 API를 호출하고 홈으로 이동한다.
+ */
 const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const logout = useAuthStore((state) => state.logout);
@@ -21,6 +27,7 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
+  /** 확인 후 회원 탈퇴를 실행하고 세션을 종료한다. */
   const handleWithdraw = async () => {
     if (!confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
 

@@ -1,14 +1,20 @@
+/**
+ * 로그룸 채팅 패널.
+ * 메시지·로그 사진을 시간순으로 병합하고, 무한 스크롤·IME 입력을 처리한다.
+ */
 import { useRef, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { MoreVertical, Reply, Send, X } from 'lucide-react';
 import { getDayLog } from '../../lib/logRoomApi';
 import type { ChatMessage, SharedPost, DayLogTimeSlot, DayLogEntry } from '../../lib/logRoomApi';
 import { getImageUrl, handleAvatarError } from '../../lib/utils';
 
+/** 채팅 타임라인에 넣을 로그 사진 항목 (날짜·슬롯 메타 포함) */
 interface LogEntryItem extends DayLogEntry {
   dateKey: string;
   timeSlot: number;
 }
 
+/** 채팅 목록의 단일 아이템 (텍스트 메시지 또는 로그 사진) */
 interface ChatItem {
   type: 'MESSAGE' | 'LOG';
   data: ChatMessage | LogEntryItem;
@@ -34,6 +40,7 @@ interface ChatPanelProps {
   onLoadOlder?: () => void;
 }
 
+/** ISO 시각을 로컬 YYYY-MM-DD 키로 변환 */
 const getDateKey = (isoString: string) => {
   const date = new Date(isoString);
   const y = date.getFullYear();
@@ -42,11 +49,13 @@ const getDateKey = (isoString: string) => {
   return `${y}-${m}-${d}`;
 };
 
+/** 날짜 키를 UI용 `YYYY.M.D` 문자열로 포맷 */
 const formatDateOnly = (dateKey: string) => {
   const [y, m, d] = dateKey.split('-');
   return `${y}.${Number(m)}.${Number(d)}`;
 };
 
+/** ISO 시각을 `YYYY. M. D. HH:mm` 타임스탬프로 포맷 */
 const formatTimestamp = (isoString: string) => {
   const date = new Date(isoString);
   const y = date.getFullYear();
@@ -57,7 +66,10 @@ const formatTimestamp = (isoString: string) => {
   return `${y}. ${m}. ${d}. ${hh}:${mm}`;
 };
 
-// 이름 마지막 글자의 받침 유무로 "이/가" 주격 조사를 고른다 (한글이 아니면 "가"로 폴백)
+/**
+ * 이름 마지막 글자의 받침 유무로 "이/가" 주격 조사를 붙인다.
+ * 한글 음절이 아니면 "가"로 폴백한다.
+ */
 const withSubjectParticle = (name: string) => {
   const lastChar = name.charCodeAt(name.length - 1);
   const isHangulSyllable = lastChar >= 0xAC00 && lastChar <= 0xD7A3;
@@ -65,6 +77,7 @@ const withSubjectParticle = (name: string) => {
   return `${name}${hasBatchim ? '이' : '가'}`;
 };
 
+/** DayLog 슬롯 배열을 채팅용 LogEntryItem 평탄화 목록으로 변환 */
 const toLogEntryItems = (dateKey: string, slots: DayLogTimeSlot[]): LogEntryItem[] =>
   slots.flatMap(slot =>
     slot.entries.map(entry => ({
@@ -76,7 +89,10 @@ const toLogEntryItems = (dateKey: string, slots: DayLogTimeSlot[]): LogEntryItem
 
 const LONG_PRESS_MS = 500;
 
-/** 채팅 로그 사진 — 모바일 롱프레스 / 데스크톱 호버 3점 메뉴로 답장 */
+/**
+ * 채팅 내 로그 사진.
+ * 모바일은 롱프레스, 데스크톱은 호버 3점 메뉴로 답장을 연다.
+ */
 const ChatLogPhoto = ({
   log,
   onReply,
@@ -89,6 +105,7 @@ const ChatLogPhoto = ({
   const menuRef = useRef<HTMLDivElement>(null);
   const didLongPress = useRef(false);
 
+  /** 롱프레스 타이머를 취소한다 */
   const clearLongPress = () => {
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
@@ -96,6 +113,7 @@ const ChatLogPhoto = ({
     }
   };
 
+  /** 메뉴 바깥 포인터 다운 시 답장 메뉴를 닫는다 */
   useEffect(() => {
     if (!menuOpen) return;
     const handlePointerDown = (e: PointerEvent) => {
@@ -109,6 +127,7 @@ const ChatLogPhoto = ({
 
   const openMenu = () => setMenuOpen(true);
 
+  /** 답장 대상을 부모에 알리고 메뉴를 닫는다 */
   const handleReply = () => {
     setMenuOpen(false);
     onReply(log.photoPublicId);
@@ -171,6 +190,10 @@ const ChatLogPhoto = ({
   );
 };
 
+/**
+ * 로그룸 우측 채팅 패널.
+ * 메시지·로그 사진 병합, 상단 무한 스크롤, 사진 답장, IME 안전 입력을 담당한다.
+ */
 export const ChatPanel = ({
   roomPublicId,
   chatMessages,
@@ -193,31 +216,39 @@ export const ChatPanel = ({
   const scrollRef = useRef<HTMLElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  // 입력값을 부모(페이지 전체)가 아니라 여기 로컬에 둬서, 타이핑할 때마다 페이지 전체가
-  // 리렌더링되는 것을 막는다 — 한글 등 IME 조합 입력 중 리렌더링 타이밍이 어긋나면
-  // 마지막 글자가 중복 입력되는 문제가 있었음.
+  /**
+   * 입력값은 부모 상태가 아닌 로컬로 관리한다.
+   * 타이핑마다 페이지 전체 리렌더를 막고, 한글 IME 조합 중 글자 중복을 방지한다.
+   */
   const [inputValue, setInputValue] = useState('');
+  /** IME 조합(한글 등) 진행 중이면 Enter 전송을 막기 위한 플래그 */
   const isComposingRef = useRef(false);
   const prevScrollHeightRef = useRef(0);
   const prevMessageCountRef = useRef(0);
   const prevScrollTopRef = useRef(0);
+  /** 사용자가 하단 근처일 때만 새 메시지에 자동 스크롤 */
   const shouldStickToBottomRef = useRef(true);
+  /** 이전 페이지 prepend 직후 스크롤 보정 중인지 */
   const isPrependingRef = useRef(false);
+  /** 코드로 스크롤할 때 상단 로드 트리거를 무시 */
   const isProgrammaticScrollRef = useRef(false);
   /** 최초 하단 정렬이 끝난 뒤에만 상단 로드를 허용 */
   const canLoadOlderRef = useRef(false);
-  // selectedDate를 제외한 '과거' 날짜들의 로그 (메시지/공유 게시물 때문에 별도 조회가 필요한 날짜만)
+  /** selectedDate 외 과거 날짜 로그 (메시지/공유에 등장해 별도 조회가 필요한 날짜) */
   const [historicalLogsByDate, setHistoricalLogsByDate] = useState<Record<string, LogEntryItem[]>>({});
 
-  // 채팅/공유 게시물에 등장하는 날짜 목록 (그 날짜들의 로그 사진을 별도로 조회하기 위함)
+  /** 채팅·공유에 등장하는 날짜 키 (해당 날짜 로그 사진을 조회하기 위함) */
   const messagePostDateKeys = useMemo(() => [...new Set([
     ...chatMessages.map(m => getDateKey(m.createdAt)),
     ...sharedPosts.map(p => getDateKey(p.createdAt)),
   ])], [chatMessages, sharedPosts]);
 
+  /**
+   * selectedDate를 제외한 누락 날짜의 DayLog를 병렬 조회해 historicalLogsByDate에 채운다.
+   * selectedDate 로그는 부모 timelineData에서 파생하므로 여기서 조회하지 않는다.
+   */
   useEffect(() => {
     if (!roomPublicId) return;
-    // selectedDate는 부모의 timelineData로 렌더 중에 바로 계산하므로 여기서 조회하지 않음
     const missingDates = messagePostDateKeys.filter(d => d !== selectedDate && !(d in historicalLogsByDate));
     if (missingDates.length === 0) return;
 
@@ -240,12 +271,13 @@ export const ChatPanel = ({
     return () => { cancelled = true; };
   }, [messagePostDateKeys, roomPublicId, historicalLogsByDate, selectedDate]);
 
-  // 현재 보고 있는 날짜(selectedDate)의 로그는 부모가 이미 들고 있는 timelineData에서 직접 파생
+  /** 현재 선택 날짜 로그 — 부모 timelineData에서 파생 */
   const selectedDateLogItems = useMemo(
     () => toLogEntryItems(selectedDate, timelineData),
     [selectedDate, timelineData]
   );
 
+  /** 과거 날짜 로그 + 선택 날짜 로그를 합친 전체 로그 목록 */
   const allLogItems = useMemo(() => [
     ...Object.entries(historicalLogsByDate)
       .filter(([date]) => date !== selectedDate)
@@ -253,6 +285,7 @@ export const ChatPanel = ({
     ...selectedDateLogItems,
   ], [historicalLogsByDate, selectedDateLogItems, selectedDate]);
 
+  /** photoPublicId → 로그 엔트리 조회 맵 (답장 인용용) */
   const logByPhotoId = useMemo(() => {
     const map = new Map<string, LogEntryItem>();
     for (const log of allLogItems) map.set(log.photoPublicId, log);
@@ -261,16 +294,20 @@ export const ChatPanel = ({
 
   const replyTarget = replyPhotoId ? logByPhotoId.get(replyPhotoId) ?? null : null;
 
-  // 통합된 채팅/로그 목록 정렬 (createdAt 기준)
-  // 공유 게시물(POST) 카드는 채팅창에 이미지로 올리지 않는다.
-  // 사진 답장은 이미지 아래에 묶지 않고, 메시지 말풍선에 해당 사진을 다시 첨부해 표시한다.
+  /**
+   * 메시지와 로그 사진을 createdAt 기준으로 병합·정렬한다.
+   * 공유 게시물(POST) 카드는 채팅에 올리지 않으며, 사진 답장은 말풍선에 인용 이미지로 표시한다.
+   */
   const chatItems: ChatItem[] = useMemo(() => [
     ...chatMessages.map(m => ({ type: 'MESSAGE' as const, data: m })),
     ...allLogItems.map(log => ({ type: 'LOG' as const, data: log })),
   ].sort((a, b) => new Date(a.data.createdAt).getTime() - new Date(b.data.createdAt).getTime()),
   [chatMessages, allLogItems]);
 
-  // 이전 메시지 prepend 시 스크롤 위치 유지
+  /**
+   * 이전 메시지 prepend 후 스크롤 앵커 유지.
+   * 새 scrollHeight와 이전 height 차이만큼 scrollTop을 보정한다.
+   */
   useLayoutEffect(() => {
     const el = scrollRef.current;
     if (!el || !isPrependingRef.current) return;
@@ -283,12 +320,16 @@ export const ChatPanel = ({
     });
   }, [chatMessages]);
 
+  /**
+   * 새 메시지/AI 타이핑 시 하단에 붙는다.
+   * prepend·사용자가 위로 올린 상태·메시지 수 감소는 자동 스크롤을 생략한다.
+   * 최초 하단 정렬 후에만 상단 infinite scroll을 허용한다.
+   */
   useEffect(() => {
     const prevCount = prevMessageCountRef.current;
     const nextCount = chatMessages.length;
     prevMessageCountRef.current = nextCount;
 
-    // prepend 로딩 중이거나, 메시지 수가 줄/유지되면 하단 고정 스크롤 생략
     if (isLoadingOlder || isPrependingRef.current) return;
     if (nextCount <= prevCount && !isAiTyping) return;
     if (!shouldStickToBottomRef.current && prevCount > 0) return;
@@ -296,7 +337,6 @@ export const ChatPanel = ({
     const el = scrollRef.current;
     isProgrammaticScrollRef.current = true;
     chatEndRef.current?.scrollIntoView({ behavior: prevCount === 0 ? 'auto' : 'smooth' });
-    // 하단 정렬 완료 후에만 상단 infinite scroll 허용 (초기 scrollTop=0으로 전체 로드되는 것 방지)
     requestAnimationFrame(() => {
       if (el) prevScrollTopRef.current = el.scrollTop;
       isProgrammaticScrollRef.current = false;
@@ -304,6 +344,7 @@ export const ChatPanel = ({
     });
   }, [chatMessages, isAiTyping, isLoadingOlder]);
 
+  /** 상단 이전 대화 로드 요청 — 현재 scrollHeight를 저장해 prepend 후 위치 보정에 쓴다 */
   const requestLoadOlder = () => {
     if (!canLoadOlderRef.current || !hasMore || isLoadingOlder) return;
     const el = scrollRef.current;
@@ -312,6 +353,11 @@ export const ChatPanel = ({
     onLoadOlder?.();
   };
 
+  /**
+   * 스크롤 핸들러.
+   * 하단 근접 여부를 갱신하고, 사용자가 위로 올려 상단 근처일 때만 이전 페이지를 요청한다.
+   * 프로그래매틱 스크롤·초기 진입·아래 방향 스크롤은 무시한다.
+   */
   const handleScroll = () => {
     const el = scrollRef.current;
     if (!el) return;
@@ -323,8 +369,6 @@ export const ChatPanel = ({
     const scrollingUp = scrollTop < prevScrollTopRef.current - 1;
     prevScrollTopRef.current = scrollTop;
 
-    // 프로그래매틱 스크롤·초기 진입·아래로 스크롤은 무시.
-    // 실제로 스크롤 가능한 상태에서, 사용자가 위로 올릴 때만 이전 페이지를 요청한다.
     if (isProgrammaticScrollRef.current || !canLoadOlderRef.current) return;
     if (!scrollingUp) return;
     if (scrollHeight <= clientHeight + 1) return;
@@ -333,12 +377,13 @@ export const ChatPanel = ({
     requestLoadOlder();
   };
 
+  /** 사진 답장 모드를 켜고 입력창에 포커스한다 */
   const handleReplyFromPhoto = (photoPublicId: string) => {
     onReply(photoPublicId);
-    // 답장 선택 후 입력창에 포커스
     requestAnimationFrame(() => inputRef.current?.focus());
   };
 
+  /** 입력값을 전송하고 로컬 입력을 비운다 */
   const handleSend = () => {
     const content = inputValue.trim();
     if (!content || isInputDisabled) return;
@@ -346,6 +391,7 @@ export const ChatPanel = ({
     setInputValue('');
   };
 
+  /** 메시지 말풍선(+인용 사진)을 렌더한다 */
   const renderMessageBubble = (msg: ChatMessage, options?: { showHeader?: boolean }) => {
     const showHeader = options?.showHeader ?? true;
     const quoted = msg.quotedPhotoPublicId

@@ -1,8 +1,12 @@
+/**
+ * 인증·프로필·구독·탈퇴 등 사용자 관련 API 호출 모음.
+ */
 import type { User } from '../store/useAuthStore';
 import { api } from './api';
 import { OAUTH2_BASE_URL } from './config';
 import { getAccessToken, getPublicIdFromToken } from './token';
 
+/** Google/Discord OAuth2 인가 URL */
 export const SOCIAL_LOGIN_URLS = {
   google: `${OAUTH2_BASE_URL}/oauth2/authorization/google`,
   discord: `${OAUTH2_BASE_URL}/oauth2/authorization/discord`,

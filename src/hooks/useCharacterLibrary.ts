@@ -1,8 +1,15 @@
+/**
+ * 캐릭터 라이브러리 목록을 검색·정렬·무한 스크롤로 불러오는 훅.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { getCharacterLibrary } from '../lib/characterApi';
 import type { CharacterCard, CharacterCardListResponse } from '../lib/characterApi';
 import { getErrorMessage } from '../lib/utils';
 
+/**
+ * 공개 캐릭터 카드 라이브러리를 페이지네이션으로 조회한다.
+ * @param initialSize 한 번에 가져올 개수
+ */
 export const useCharacterLibrary = (initialSize = 10) => {
   const [characters, setCharacters] = useState<CharacterCard[]>([]);
   const [loading, setLoading] = useState(false);
@@ -14,6 +21,7 @@ export const useCharacterLibrary = (initialSize = 10) => {
   const [keyword, setKeyword] = useState('');
   const [sort, setSort] = useState<'LATEST' | 'POPULAR'>('LATEST');
 
+  /** isFirst면 처음부터, 아니면 nextCursor로 이어 불러온다 */
   const fetchCharacters = useCallback(async (isFirst = true) => {
     setLoading(true);
     setError(null);
@@ -52,6 +60,7 @@ export const useCharacterLibrary = (initialSize = 10) => {
     fetchCharacters(true);
   }, [keyword, sort]);
 
+  /** 다음 페이지를 이어서 로드한다 */
   const loadMore = () => {
     if (!loading && hasNext) {
       fetchCharacters(false);
@@ -59,6 +68,7 @@ export const useCharacterLibrary = (initialSize = 10) => {
   };
 
   // 삭제 직후 재조회 없이 목록에서 바로 제거해 즉시 리렌더링되도록 한다.
+  /** 목록에서 캐릭터를 즉시 제거한다 (낙관적 UI) */
   const removeCharacter = (publicId: string) => {
     setCharacters((prev) => prev.filter((c) => c.publicId !== publicId));
     setTotalCount((prev) => Math.max(0, prev - 1));

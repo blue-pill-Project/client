@@ -19,6 +19,10 @@ import { CharacterInfoModal } from '../../components/character/CharacterInfoModa
 import { SettingIcon } from '../../components/icons/SettingIcon';
 import { LibrarySection } from '../../components/common/LibrarySection';
 
+/**
+ * 유저 프로필 페이지.
+ * 본인/타인 프로필 조회, 공개 설정, 소유 캐릭터 목록·수정·삭제를 담당한다.
+ */
 const ProfilePage = () => {
   const { publicId: paramPublicId } = useParams();
   const navigate = useNavigate();
@@ -30,6 +34,7 @@ const ProfilePage = () => {
   const [selectedCharacter, setSelectedCharacter] = useState<CharacterCard | null>(null);
   const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
 
+  // URL에 publicId가 없거나 현재 유저와 같으면 본인 프로필
   const isOwner = !paramPublicId || paramPublicId === currentUser?.publicId;
   const targetPublicId = paramPublicId || currentUser?.publicId;
 
@@ -37,6 +42,7 @@ const ProfilePage = () => {
   const { deleteCharacter } = useDeleteCharacter();
 
   useEffect(() => {
+    /** 대상 유저 프로필 API 조회 */
     const fetchProfile = async () => {
       if (!targetPublicId) return;
       setLoading(true);
@@ -55,6 +61,7 @@ const ProfilePage = () => {
     fetchProfile();
   }, [targetPublicId]);
 
+  /** 캐릭터 클릭 시 상세(프롬프트 포함)를 확보한 뒤 모달 표시 */
   const handleCharacterClick = async (char: CharacterCard) => {
     if (char.prompt !== undefined) {
       setSelectedCharacter(char);
@@ -68,6 +75,7 @@ const ProfilePage = () => {
     }
   };
 
+  /** 계정 공개/비공개 토글을 서버에 반영 */
   const handleVisibilityChange = async (checked: boolean) => {
     try {
       await updateProfileVisibility(!checked); // isPrivate state와 반대
@@ -77,6 +85,7 @@ const ProfilePage = () => {
     }
   };
 
+  /** 프로필 수정 모달 성공 시 로컬 표시 상태 갱신 */
   const handleEditSuccess = (newNickname: string, newImageUrl: string | null) => {
     setProfileUser((prev) => prev ? {
       ...prev,
@@ -95,7 +104,7 @@ const ProfilePage = () => {
 
   return (
     <PageLayout>
-      {/* --- Character Detail Modal --- */}
+      {/* --- 캐릭터 상세 모달 --- */}
       {selectedCharacter && (
         <CharacterInfoModal character={selectedCharacter} onClose={() => setSelectedCharacter(null)} />
       )}

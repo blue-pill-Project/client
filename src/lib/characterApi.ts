@@ -1,5 +1,9 @@
+/**
+ * 캐릭터 카드 CRUD·라이브러리·프롬프트 자동완성 API.
+ */
 import { api } from './api';
 
+/** 캐릭터 카드 단건 응답 */
 export interface CharacterCard {
   publicId: string;
   name: string;
@@ -17,6 +21,7 @@ export interface CharacterCard {
   updatedAt: string;
 }
 
+/** 캐릭터 카드 커서 페이지네이션 목록 응답 */
 export interface CharacterCardListResponse {
   content: CharacterCard[];
   nextCursor: string | null;
@@ -24,6 +29,7 @@ export interface CharacterCardListResponse {
   total: number;
 }
 
+/** 캐릭터 카드 생성 요청 본문 */
 export interface CharacterCardCreateRequest {
   name: string;
   description: string;
@@ -33,6 +39,7 @@ export interface CharacterCardCreateRequest {
   isPublic: boolean;
 }
 
+/** 캐릭터 카드 수정 요청 본문 (부분 갱신) */
 export interface CharacterCardUpdateRequest {
   name?: string;
   description?: string;

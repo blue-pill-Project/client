@@ -1,3 +1,7 @@
+/**
+ * 공통 탭 네비게이션.
+ * 밑줄 인디케이터로 활성 탭을 표시한다.
+ */
 import React from 'react';
 import { cn } from '../../lib/utils';
 
@@ -13,6 +17,9 @@ interface TabsProps {
   className?: string;
 }
 
+/**
+ * 수평 탭 목록. 클릭 시 onTabChange(id)를 호출한다.
+ */
 const Tabs: React.FC<TabsProps> = ({ items, activeId, onTabChange, className }) => {
   return (
     <div className={cn('flex items-center', className)}>

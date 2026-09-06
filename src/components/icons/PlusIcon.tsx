@@ -1,3 +1,8 @@
+/**
+ * 플러스(추가) SVG 아이콘.
+ */
+
+/** 업로드/추가 액션용 아이콘 */
 export const PlusIcon = () => (
     <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M5.39844 3.13867V7.66175" stroke="#27272A" stroke-linecap="round" stroke-linejoin="round" />

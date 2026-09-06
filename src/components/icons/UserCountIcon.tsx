@@ -1,3 +1,8 @@
+/**
+ * 사용자 수(카운트) SVG 아이콘.
+ */
+
+/** 이용자 수/카운트 표시용 아이콘 */
 export const UseCountIcon = () => (
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M7.71484 1L9.61961 2.92308L7.71484 4.84616" stroke="#62F6B5" stroke-linecap="round" stroke-linejoin="round" />

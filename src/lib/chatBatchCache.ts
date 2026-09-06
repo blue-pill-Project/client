@@ -1,13 +1,19 @@
+/**
+ * 서버에 한 덩어리로 저장된 채팅 배치를 UI용 개별 말풍선으로 펼치기 위한 sessionStorage 캐시.
+ */
 import type { ChatMessage } from './logRoomApi';
 
+/** 배치를 나눈 개별 말풍선 조각 */
 export type ChatBatchPart = {
   content: string;
   createdAt: string;
   photoPublicId?: string | null;
 };
 
+/** 방별 배치 분리 맵의 sessionStorage 키 */
 const storageKey = (roomId: string) => `bluepill:chat-batch-split:${roomId}`;
 
+/** 방의 배치→조각 맵을 sessionStorage에서 읽는다 */
 const loadMap = (roomId: string): Record<string, ChatBatchPart[]> => {
   try {
     const raw = sessionStorage.getItem(storageKey(roomId));
@@ -17,6 +23,7 @@ const loadMap = (roomId: string): Record<string, ChatBatchPart[]> => {
   }
 };
 
+/** 방의 배치→조각 맵을 sessionStorage에 저장한다 */
 const saveMap = (roomId: string, map: Record<string, ChatBatchPart[]>) => {
   sessionStorage.setItem(storageKey(roomId), JSON.stringify(map));
 };

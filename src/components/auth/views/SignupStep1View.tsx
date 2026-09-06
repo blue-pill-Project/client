@@ -1,8 +1,14 @@
+/**
+ * 회원가입 1단계 — 서비스 약관 동의 화면.
+ */
 import React, { useState } from 'react';
 import { useAuthStore } from '../../../store/useAuthStore';
 import Button from '../../common/Button';
 import Checkbox from '../../common/Checkbox';
 
+/**
+ * 필수 약관 체크 후 프로필 등록(2단계)으로 진행하는 회원가입 뷰.
+ */
 const SignupStep1View: React.FC = () => {
   const setView = useAuthStore((state) => state.setView);
 
@@ -11,6 +17,7 @@ const SignupStep1View: React.FC = () => {
   const [terms2, setTerms2] = useState(false);
   const [terms3, setTerms3] = useState(false);
 
+  /** 전체 동의 시 개별 약관 체크 상태를 일괄 동기화한다. */
   const handleAllCheck = (checked: boolean) => {
     setAllChecked(checked);
     setTerms1(checked);
@@ -18,7 +25,8 @@ const SignupStep1View: React.FC = () => {
     setTerms3(checked);
   };
 
-  const isNextEnabled = terms1 && terms2 && terms3; // 현재는 모든 항목을 필수라고 가정
+  // 현재는 모든 항목을 필수로 가정
+  const isNextEnabled = terms1 && terms2 && terms3;
 
   return (
     <div className="flex flex-col max-w-120 w-full mx-auto">

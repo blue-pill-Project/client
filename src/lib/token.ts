@@ -1,3 +1,6 @@
+/**
+ * 액세스 토큰의 로컬 스토리지 저장·조회 및 JWT에서 publicId 추출 유틸.
+ */
 import { getErrorMessage } from './utils';
 
 // 액세스 토큰 로컬 스토리지 키

@@ -1,3 +1,7 @@
+/**
+ * 공통 버튼 컴포넌트.
+ * variant·size·로딩·좌우 아이콘을 지원하는 디자인 시스템 버튼이다
+ */
 import React from 'react';
 import { cn } from '../../lib/utils';
 
@@ -22,6 +26,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   iconSize?: ButtonSize; // 아이콘 전용 사이즈 (SVG 크기 강제 제어)
 }
 
+/**
+ * 공통 Button.
+ * loading 중에는 스피너를 보이고 클릭을 비활성화한다.
+ */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({
     variant = 'solid',

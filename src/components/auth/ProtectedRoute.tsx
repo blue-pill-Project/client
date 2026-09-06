@@ -1,3 +1,6 @@
+/**
+ * 인증이 필요한 라우트를 감싸 비로그인 접근을 차단하는 모듈.
+ */
 import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -9,8 +12,7 @@ interface ProtectedRouteProps {
 import PageLayout from '../layout/PageLayout';
 
 /**
- * 로그인한 유저만 접근 가능한 경로를 보호하는 컴포넌트
- * 비로그인 시 홈으로 리다이렉트하고 로그인 모달을 엽니다.
+ * 로그인 유저만 children을 렌더하고, 비로그인이면 홈으로 보내고 로그인 모달을 연다.
  */
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isInitialized, openModal } = useAuthStore();

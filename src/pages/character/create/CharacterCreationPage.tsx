@@ -12,6 +12,10 @@ import { EditIcon } from '../../../components/icons/EditIcon';
 
 type Step = 'setting' | 'prompt' | 'example';
 
+/**
+ * 캐릭터 카드 생성 페이지.
+ * 기본 설정 → 프롬프트 → 예시 대화 3단계 폼으로 새 캐릭터를 등록한다.
+ */
 const CharacterCreationPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -34,11 +38,13 @@ const CharacterCreationPage = () => {
   const [exampleInput, setExampleInput] = useState('');
   const [isAutoCompleting, setIsAutoCompleting] = useState(false);
 
+  /** 텍스트 입력 필드를 formData에 반영 */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  /** 이미지 파일 선택 후 미리보기용 Data URL 생성 */
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -51,6 +57,7 @@ const CharacterCreationPage = () => {
     }
   };
 
+  /** 예시 대화를 목록에 추가 (최대 5개) */
   const handleAddExample = () => {
     if (exampleInput.trim() && formData.exampleDialogues.length < 5) {
       setFormData(prev => ({
@@ -61,6 +68,7 @@ const CharacterCreationPage = () => {
     }
   };
 
+  /** 기존 예시 대화를 입력창으로 불러와 수정할 수 있게 함 */
   const handleEditExample = (index: number) => {
     const dialogueToEdit = formData.exampleDialogues[index];
     setExampleInput(dialogueToEdit);
@@ -70,6 +78,7 @@ const CharacterCreationPage = () => {
     }));
   };
 
+  /** 예시 대화 항목 삭제 */
   const handleRemoveExample = (index: number) => {
     setFormData(prev => ({
       ...prev,
@@ -77,6 +86,7 @@ const CharacterCreationPage = () => {
     }));
   };
 
+  /** 이름·소개 기반으로 AI 프롬프트 자동완성 요청 */
   const handleAutoCompletePrompt = async () => {
     if (!formData.name || !formData.description) {
       alert('자동완성을 사용하려면 캐릭터 이름과 한 줄 소개를 먼저 입력해주세요.');
@@ -99,6 +109,7 @@ const CharacterCreationPage = () => {
     }
   };
 
+  /** 이미지 R2 업로드 후 캐릭터 카드 생성 API 호출 */
   const handleSubmit = async () => {
     if (!selectedFile) {
       alert("캐릭터 이미지를 등록해주세요.");
@@ -129,7 +140,7 @@ const CharacterCreationPage = () => {
 
   return (
     <PageLayout containerClassName="mx-auto flex justify-between md:py-0 md:px-6 md:h-screen">
-      {/* Left Content Area */}
+      {/* 좌측: 단계별 입력 폼 */}
       <div className="flex flex-col justify-between [@media(width>=1200px)]:max-w-2xl w-full">
         <div className='mt-13 flex flex-col justify-between h-full mb-10'>
           <header className="mb-8 space-y-2">
@@ -137,7 +148,7 @@ const CharacterCreationPage = () => {
             <h1 className="text-header-1 font-bold text-base-300">캐릭터 생성</h1>
           </header>
 
-          {/* Navigation Tabs */}
+          {/* 단계 탭 네비게이션 */}
           <Tabs
             items={[
               { id: 'setting', label: '캐릭터 기본 설정' },
@@ -150,7 +161,7 @@ const CharacterCreationPage = () => {
           />
 
           <div className='flex flex-col justify-between flex-1 pl-3'>
-            {/* Step: Setting */}
+            {/* 1단계: 기본 설정 */}
             {currentStep === 'setting' && (
               <div className="flex flex-col flex-1 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className='flex-1'>
@@ -239,7 +250,7 @@ const CharacterCreationPage = () => {
               </div>
             )}
 
-            {/* Step: Example */}
+            {/* 3단계: 예시 대화 */}
             {currentStep === 'example' && (
               <div className="flex flex-col flex-1 gap-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex-1">
@@ -359,7 +370,7 @@ const CharacterCreationPage = () => {
         </div>
       </div>
       <div className="hidden [@media(width>=1200px)]:block border-l border-base-700" />
-      {/* Right Preview Area */}
+      {/* 우측: 캐릭터 미리보기 */}
       <div className="hidden w-86.5 shrink-0 [@media(width>=1200px)]:flex flex-col justify-center">
         <div>
           <h3 className="text-header-4 text-base-300">캐릭터 미리보기</h3>

@@ -1,3 +1,6 @@
+/**
+ * 닉네임·프로필 이미지 수정을 위한 모달 모듈.
+ */
 import React, { useRef, useState } from 'react';
 import Button from '../common/Button';
 import TextInput from '../common/TextInput';
@@ -16,6 +19,9 @@ interface ProfileEditModalProps {
   onSuccess: (newNickname: string, newImageUrl: string | null) => void;
 }
 
+/**
+ * 프로필 사진 업로드와 닉네임 변경을 서버·스토어에 반영하는 편집 모달.
+ */
 const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   isOpen,
   onClose,
@@ -33,6 +39,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 
   if (!isOpen) return null;
 
+  /** 선택한 이미지를 미리보기로 반영한다. */
   const handleImageChange = (file: File) => {
     setSelectedFile(file);
     const reader = new FileReader();
@@ -42,6 +49,7 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
     reader.readAsDataURL(file);
   };
 
+  /** R2 업로드(필요 시) 후 프로필을 갱신하고 성공 콜백을 호출한다. */
   const handleSubmit = async () => {
     if (!nickname.trim()) {
       alert('닉네임을 입력해주세요.');

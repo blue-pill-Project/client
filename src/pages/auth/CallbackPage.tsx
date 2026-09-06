@@ -5,11 +5,16 @@ import { reissueToken, getMyProfile } from '../../lib/authApi';
 import { setAccessToken } from '../../lib/token';
 import { getErrorMessage } from '../../lib/utils';
 
+/**
+ * OAuth 콜백 페이지.
+ * 소셜 로그인 리다이렉트 후 토큰 재발급·프로필 조회를 수행하고 홈으로 이동한다.
+ */
 const CallbackPage: React.FC = () => {
   const navigate = useNavigate();
   const { setAuthenticated, openModal, logout } = useAuthStore();
 
   useEffect(() => {
+    /** 토큰 재발급 → 프로필 조회 → 인증 상태 반영 후 홈으로 이동 */
     const initAuth = async () => {
       try {
         // 즉시 토큰 재발급 호출

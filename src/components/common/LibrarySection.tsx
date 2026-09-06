@@ -1,3 +1,7 @@
+/**
+ * 라이브러리 섹션 툴바.
+ * 제목·개수와 함께 정렬 드롭다운·검색바를 배치한다.
+ */
 import React from 'react';
 import SearchBar from './SearchBar';
 import Dropdown from './Dropdown';
@@ -13,6 +17,10 @@ interface LibrarySectionProps {
   onClearKeyword?: () => void;
 }
 
+/**
+ * 목록 섹션 헤더(제목/카운트 + 정렬/검색).
+ * sortOptions와 onKeywordChange가 모두 있을 때만 우측 컨트롤을 표시한다.
+ */
 export const LibrarySection: React.FC<LibrarySectionProps> = ({
   title,
   count,

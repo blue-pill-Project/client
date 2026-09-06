@@ -1,3 +1,7 @@
+/**
+ * 공통 체크박스.
+ * 커스텀 스타일의 선택 UI와 선택적 라벨을 제공한다.
+ */
 import React from 'react';
 import { cn } from '../../lib/utils';
 
@@ -6,8 +10,12 @@ interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>
   onChange?: (checked: boolean) => void;
 }
 
+/**
+ * boolean onChange를 받는 커스텀 Checkbox.
+ */
 const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
   ({ label, checked, onChange, disabled, className, id, ...props }, ref) => {
+    /** 네이티브 change를 boolean으로 변환해 부모에 전달한다 */
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (onChange) {
         onChange(e.target.checked);

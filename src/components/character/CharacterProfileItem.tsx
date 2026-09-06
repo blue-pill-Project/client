@@ -1,3 +1,6 @@
+/**
+ * 인스타그램 스타일 캐릭터 프로필 헤더(아바타·ID·이름·태그) UI.
+ */
 import { cn } from '../../lib/utils';
 import Chip from '../common/Chip';
 
@@ -9,6 +12,9 @@ interface CharacterProfileItemProps {
   className?: string;
 }
 
+/**
+ * 캐릭터 아바타와 인스타그램 ID·이름·태그를 한 줄로 표시한다.
+ */
 const CharacterProfileItem = ({
   imageUrl,
   instagramId,

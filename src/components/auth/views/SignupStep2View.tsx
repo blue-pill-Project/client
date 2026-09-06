@@ -1,3 +1,6 @@
+/**
+ * 회원가입 2단계 — 프로필 이미지·닉네임 등록 화면.
+ */
 import React, { useState } from 'react';
 import { useAuthStore } from '../../../store/useAuthStore';
 import Button from '../../common/Button';
@@ -7,6 +10,9 @@ import { updateProfile, getMyProfile } from '../../../lib/authApi';
 import { useR2Upload } from '../../../hooks/useR2Upload';
 import { getErrorMessage } from '../../../lib/utils';
 
+/**
+ * 닉네임·프로필 사진을 저장하거나 건너뛰어 회원가입을 완료하는 뷰.
+ */
 const SignupStep2View: React.FC = () => {
   const { setView, setAuthenticated } = useAuthStore();
   const [nickname, setNickname] = useState('');
@@ -15,6 +21,7 @@ const SignupStep2View: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { uploadToR2 } = useR2Upload();
 
+  /** 선택한 프로필 이미지를 미리보기 상태로 반영한다. */
   const handleImageChange = (file: File) => {
     setSelectedFile(file);
     const reader = new FileReader();
@@ -24,6 +31,7 @@ const SignupStep2View: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  /** 이미지 업로드 후 프로필을 저장하고 가입 완료 화면으로 이동한다. */
   const handleSubmit = async () => {
     if (!nickname.trim()) {
       alert('닉네임을 입력해주세요.');
@@ -65,6 +73,7 @@ const SignupStep2View: React.FC = () => {
   // 닉네임을 비워둔 채 건너뛰면 서버가 랜덤 닉네임을 자동 부여한다.
   // 이 호출 없이 넘어가면 nickname이 계속 null로 남아 다음 로그인마다
   // isNewUser가 true로 판정되어 회원가입 모달이 매번 다시 뜨게 된다.
+  /** 닉네임 입력을 건너뛰고 서버 기본 닉네임으로 가입을 완료한다. */
   const handleSkip = async () => {
     setIsLoading(true);
     try {

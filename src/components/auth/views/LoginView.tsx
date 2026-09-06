@@ -1,3 +1,6 @@
+/**
+ * 소셜/개발용 로그인 버튼을 제공하는 인증 모달의 로그인 단계 뷰.
+ */
 import React from 'react';
 import { SOCIAL_LOGIN_URLS, getDevToken } from '../../../lib/authApi';
 import { setAccessToken } from '../../../lib/token';
@@ -5,6 +8,7 @@ import { useAuthStore } from '../../../store/useAuthStore';
 import { getErrorMessage } from '../../../lib/utils';
 import Button from '../../common/Button';
 
+/** 구글 로그인 버튼용 아이콘 */
 const GoogleIcon = () => (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M19.6 10.2271C19.6 9.51804 19.5364 8.83624 19.4182 8.18164H10V12.0498H15.3818C15.15 13.2998 14.4455 14.3589 13.3864 15.068V17.5771H16.6182C18.5091 15.8362 19.6 13.2725 19.6 10.2271Z" fill="#4285F4" />
@@ -14,23 +18,30 @@ const GoogleIcon = () => (
     </svg>
 );
 
+/** 디스코드 로그인 버튼용 아이콘 */
 const DiscordIcon = () => (
     <svg width="21" height="20" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M17.0483 4.28422C15.7455 3.6747 14.3525 3.23171 12.8962 2.97949C12.7173 3.30284 12.5084 3.73775 12.3643 4.08374C10.8162 3.85093 9.28235 3.85093 7.76273 4.08374C7.61868 3.73775 7.40498 3.30284 7.22453 2.97949C5.76664 3.23171 4.37207 3.67632 3.06931 4.28745C0.441625 8.25822 -0.270698 12.1304 0.0854636 15.9475C1.82828 17.249 3.51728 18.0396 5.17778 18.557C5.58776 17.9928 5.95342 17.3929 6.26843 16.7608C5.66849 16.5328 5.09389 16.2515 4.55094 15.9249C4.69499 15.8182 4.83587 15.7067 4.972 15.5919C8.28351 17.1407 11.8815 17.1407 15.1535 15.5919C15.2912 15.7067 15.4321 15.8182 15.5745 15.9249C15.03 16.2531 14.4538 16.5344 13.8539 16.7624C14.1689 17.3929 14.533 17.9944 14.9445 18.5586C16.6066 18.0413 18.2972 17.2507 20.04 15.9475C20.4579 11.5225 19.3261 7.68589 17.0483 4.28422ZM6.71957 13.6C5.72548 13.6 4.91027 12.672 4.91027 11.5419C4.91027 10.4118 5.70807 9.48211 6.71957 9.48211C7.73107 9.48211 8.54628 10.4101 8.52887 11.5419C8.53045 12.672 7.73107 13.6 6.71957 13.6ZM13.4059 13.6C12.4118 13.6 11.5966 12.672 11.5966 11.5419C11.5966 10.4118 12.3944 9.48211 13.4059 9.48211C14.4174 9.48211 15.2326 10.4101 15.2152 11.5419C15.2152 12.672 14.4174 13.6 13.4059 13.6Z" fill="white" />
     </svg>
 );
 
+/**
+ * 구글·디스코드 OAuth 및 개발용 User ID 로그인을 제공하는 로그인 화면.
+ */
 const LoginView: React.FC = () => {
     const { setAuthenticated, closeModal } = useAuthStore();
 
+    /** 구글 OAuth 로그인 페이지로 이동한다. */
     const handleGoogleLogin = () => {
         window.location.href = SOCIAL_LOGIN_URLS.google;
     };
 
+    /** 디스코드 OAuth 로그인 페이지로 이동한다. */
     const handleDiscordLogin = () => {
         window.location.href = SOCIAL_LOGIN_URLS.discord;
     };
 
+    /** 개발 환경에서 User ID로 테스트 토큰을 발급받아 로그인한다. */
     const handleDevLogin = async () => {
         const userIdInput = prompt("개발자 모드: 로그인할 User ID를 입력하세요 (기본값: 1)", "1");
         if (userIdInput === null) return; // 취소
@@ -46,7 +57,7 @@ const LoginView: React.FC = () => {
             setAccessToken(accessToken);
             setAuthenticated(true);
             closeModal();
-            window.location.reload(); // 프로필 정보를 다시 불러오기 위해 새로고침
+            window.location.reload(); // 프로필 재조회를 위해 새로고침
         } catch (error) {
             const message = getErrorMessage(error, '토큰 발급에 실패했습니다. 서버 상태를 확인해주세요.');
             console.error(message);

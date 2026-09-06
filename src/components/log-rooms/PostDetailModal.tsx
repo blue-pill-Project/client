@@ -1,3 +1,7 @@
+/**
+ * 공유 로그 게시물 상세 모달.
+ * 방·참가자·공유자 정보와 사진 목록을 표시하고, 내 게시물은 삭제를 허용한다.
+ */
 import { Clock, Trash2, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { SharedPost } from '../../lib/logRoomApi';
@@ -9,6 +13,10 @@ interface PostDetailModalProps {
   onDelete?: () => void;
 }
 
+/**
+ * SharedPost 상세 오버레이.
+ * post가 null이면 렌더하지 않는다.
+ */
 export const PostDetailModal = ({ post, onClose, onDelete }: PostDetailModalProps) => {
   if (!post) return null;
 
